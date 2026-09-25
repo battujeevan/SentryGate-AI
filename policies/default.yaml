@@ -1,0 +1,5 @@
+# Compliance policy pack — hot-reloaded by the proxy without redeploying workflows.
+max_risk_ceiling: 0.75
+max_parallel_tasks: 64
+protected_targets:
+  - ROOT_CORE_EDGE
