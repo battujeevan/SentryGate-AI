@@ -20,7 +20,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) and [SECURITY.md](SECURITY.md).
 
 ## Quick demo (Docker)
 
-Prerequisites: Docker, Docker Compose, Go 1.21+.
+Prerequisites: Docker, Docker Compose, Go 1.27+.
 
 ```powershell
 # Windows
