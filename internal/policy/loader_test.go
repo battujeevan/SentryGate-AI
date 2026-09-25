@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sentrygate-ai/sentrygate/internal/policy"
-	"github.com/sentrygate-ai/sentrygate/shared/contracts"
+	"github.com/battujeevan/SentryGate-AI/internal/policy"
+	"github.com/battujeevan/SentryGate-AI/shared/contracts"
 )
 
 func TestLoadOnce(t *testing.T) {

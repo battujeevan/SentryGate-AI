@@ -9,7 +9,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/sentrygate-ai/sentrygate/shared/contracts"
+	"github.com/battujeevan/SentryGate-AI/shared/contracts"
 )
 
 // File holds an on-disk policy document that mirrors contracts.PolicyConfig.

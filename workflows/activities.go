@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sentrygate-ai/sentrygate/shared/contracts"
+	"github.com/battujeevan/SentryGate-AI/shared/contracts"
 )
 
 // InfrastructureActivities encapsulates side-effecting infrastructure mutations

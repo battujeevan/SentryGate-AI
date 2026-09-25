@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/suite"
 	"go.temporal.io/sdk/testsuite"
 
-	"github.com/sentrygate-ai/sentrygate/shared/contracts"
-	"github.com/sentrygate-ai/sentrygate/workflows"
+	"github.com/battujeevan/SentryGate-AI/shared/contracts"
+	"github.com/battujeevan/SentryGate-AI/workflows"
 )
 
 type SagaTestSuite struct {

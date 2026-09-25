@@ -1,4 +1,4 @@
-module github.com/sentrygate-ai/sentrygate
+module github.com/battujeevan/SentryGate-AI
 
 go 1.25.0
 

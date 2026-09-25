@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sentrygate-ai/sentrygate/shared/contracts"
+	"github.com/battujeevan/SentryGate-AI/shared/contracts"
 )
 
 // ==========================================

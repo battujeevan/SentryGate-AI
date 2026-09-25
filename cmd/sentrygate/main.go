@@ -14,15 +14,15 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.temporal.io/sdk/client"
 
-	"github.com/sentrygate-ai/sentrygate/internal/audit"
-	"github.com/sentrygate-ai/sentrygate/internal/auth"
-	"github.com/sentrygate-ai/sentrygate/internal/config"
-	"github.com/sentrygate-ai/sentrygate/internal/logging"
-	"github.com/sentrygate-ai/sentrygate/internal/policy"
-	"github.com/sentrygate-ai/sentrygate/internal/telemetry"
-	"github.com/sentrygate-ai/sentrygate/proxy"
-	"github.com/sentrygate-ai/sentrygate/shared/contracts"
-	"github.com/sentrygate-ai/sentrygate/workflows"
+	"github.com/battujeevan/SentryGate-AI/internal/audit"
+	"github.com/battujeevan/SentryGate-AI/internal/auth"
+	"github.com/battujeevan/SentryGate-AI/internal/config"
+	"github.com/battujeevan/SentryGate-AI/internal/logging"
+	"github.com/battujeevan/SentryGate-AI/internal/policy"
+	"github.com/battujeevan/SentryGate-AI/internal/telemetry"
+	"github.com/battujeevan/SentryGate-AI/proxy"
+	"github.com/battujeevan/SentryGate-AI/shared/contracts"
+	"github.com/battujeevan/SentryGate-AI/workflows"
 )
 
 func main() {

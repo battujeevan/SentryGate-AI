@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/sentrygate-ai/sentrygate/internal/auth"
+	"github.com/battujeevan/SentryGate-AI/internal/auth"
 )
 
 func TestAPIKeyMiddleware_AcceptsValidKey(t *testing.T) {

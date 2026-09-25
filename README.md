@@ -2,7 +2,7 @@
 
 **Deterministic agent control-plane firewall** in Go. Sits between autonomous LLM tool-calling agents and enterprise infrastructure APIs, enforcing non-bypassable policy, bounded concurrency, Temporal sagas with compensation, and an immutable audit trail.
 
-[![CI](https://github.com/sentrygate-ai/sentrygate/actions/workflows/ci.yml/badge.svg)](https://github.com/sentrygate-ai/sentrygate/actions/workflows/ci.yml)
+[![CI](https://github.com/battujeevan/SentryGate-AI/actions/workflows/ci.yml/badge.svg)](https://github.com/battujeevan/SentryGate-AI/actions/workflows/ci.yml)
 
 > Replace the badge URL with your fork after you push to GitHub.
 

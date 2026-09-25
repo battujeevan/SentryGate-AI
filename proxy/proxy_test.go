@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/sentrygate-ai/sentrygate/proxy"
-	"github.com/sentrygate-ai/sentrygate/shared/contracts"
+	"github.com/battujeevan/SentryGate-AI/proxy"
+	"github.com/battujeevan/SentryGate-AI/shared/contracts"
 )
 
 func TestInterceptAndValidate_RiskCeiling(t *testing.T) {

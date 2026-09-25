@@ -10,11 +10,11 @@ import (
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 
-	"github.com/sentrygate-ai/sentrygate/internal/audit"
-	"github.com/sentrygate-ai/sentrygate/internal/config"
-	"github.com/sentrygate-ai/sentrygate/internal/logging"
-	"github.com/sentrygate-ai/sentrygate/internal/telemetry"
-	"github.com/sentrygate-ai/sentrygate/workflows"
+	"github.com/battujeevan/SentryGate-AI/internal/audit"
+	"github.com/battujeevan/SentryGate-AI/internal/config"
+	"github.com/battujeevan/SentryGate-AI/internal/logging"
+	"github.com/battujeevan/SentryGate-AI/internal/telemetry"
+	"github.com/battujeevan/SentryGate-AI/workflows"
 )
 
 func main() {

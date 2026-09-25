@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sentrygate-ai/sentrygate/shared/contracts"
-	"github.com/sentrygate-ai/sentrygate/workflows"
+	"github.com/battujeevan/SentryGate-AI/shared/contracts"
+	"github.com/battujeevan/SentryGate-AI/workflows"
 )
 
 func TestMemoryAuditStore_AppendAndList(t *testing.T) {

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sentrygate-ai/sentrygate/internal/audit"
-	"github.com/sentrygate-ai/sentrygate/shared/contracts"
+	"github.com/battujeevan/SentryGate-AI/internal/audit"
+	"github.com/battujeevan/SentryGate-AI/shared/contracts"
 )
 
 func TestSQLiteStore_AppendAndList(t *testing.T) {

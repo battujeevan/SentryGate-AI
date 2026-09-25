@@ -7,7 +7,7 @@ import (
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 
-	"github.com/sentrygate-ai/sentrygate/shared/contracts"
+	"github.com/battujeevan/SentryGate-AI/shared/contracts"
 )
 
 // SentryGateSagaWorkflow is the durable Temporal state machine that applies

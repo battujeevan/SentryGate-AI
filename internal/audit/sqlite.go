@@ -10,7 +10,7 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	"github.com/sentrygate-ai/sentrygate/shared/contracts"
+	"github.com/battujeevan/SentryGate-AI/shared/contracts"
 )
 
 // Store is an append-only SQLite-backed audit table shared by proxy and worker.

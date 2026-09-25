@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sentrygate-ai/sentrygate/shared/contracts"
+	"github.com/battujeevan/SentryGate-AI/shared/contracts"
 )
 
 // AuditStore persists immutable AuditRecord rows for enterprise security audits.
