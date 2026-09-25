@@ -4,8 +4,6 @@
 
 [![CI](https://github.com/battujeevan/SentryGate-AI/actions/workflows/ci.yml/badge.svg)](https://github.com/battujeevan/SentryGate-AI/actions/workflows/ci.yml)
 
-> Replace the badge URL with your fork after you push to GitHub.
-
 ## Why it exists
 
 Prompt rules do not stop an agent from calling `DELETE_POLICY` on a root edge profile. SentryGate treats tool-calls as **control-plane mutations**: validate → throttle → durable apply → rollback → audit.
