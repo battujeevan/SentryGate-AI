@@ -2,7 +2,9 @@ $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $PSScriptRoot
 Set-Location $Root
 
+# The proxy maps keys to agent IDs via SENTRYGATE_AGENT_KEYS; agent-sim presents SENTRYGATE_API_KEY.
 $env:SENTRYGATE_API_KEY = if ($env:SENTRYGATE_API_KEY) { $env:SENTRYGATE_API_KEY } else { "dev-secret-change-me" }
+$env:SENTRYGATE_AGENT_KEYS = if ($env:SENTRYGATE_AGENT_KEYS) { $env:SENTRYGATE_AGENT_KEYS } else { "agent-sim:$($env:SENTRYGATE_API_KEY)" }
 $env:SENTRYGATE_URL = if ($env:SENTRYGATE_URL) { $env:SENTRYGATE_URL } else { "http://localhost:8080" }
 
 Write-Host "==> Starting SentryGate stack (Temporal + worker + proxy)"
@@ -28,11 +30,11 @@ if (-not $ready) {
   exit 1
 }
 
-Write-Host "==> Running agent-sim scenarios (deny / allow / rollback)"
+Write-Host "==> Running agent-sim scenarios"
 go run ./cmd/agent-sim all
 
 Write-Host ""
 Write-Host "Demo complete."
 Write-Host "  Proxy:       $($env:SENTRYGATE_URL)"
 Write-Host "  Temporal UI: http://localhost:8088"
-Write-Host "  API key:     $($env:SENTRYGATE_API_KEY)"
+Write-Host "  Verify:      go run ./cmd/agent-sim -check all"

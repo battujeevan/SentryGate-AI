@@ -1,4 +1,4 @@
-.PHONY: demo demo-ps up down test bench build tidy
+.PHONY: demo demo-ps up down test race bench check build tidy
 
 up:
 	docker compose up -d --build
@@ -15,8 +15,16 @@ demo-ps:
 test:
 	go test ./...
 
+# Requires cgo (a C toolchain).
+race:
+	go test -race -count=1 ./...
+
 bench:
-	go test ./proxy -bench=BenchmarkProxy -benchmem -count=1
+	go test ./proxy -run '^$$' -bench=BenchmarkProxy -benchmem -count=1
+
+# Run every agent-sim scenario against a running stack and fail on any unexpected result.
+check:
+	go run ./cmd/agent-sim -check all
 
 build:
 	go build -o bin/sentrygate ./cmd/sentrygate

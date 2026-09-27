@@ -2,8 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, "phase-*"]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   test:
@@ -24,8 +25,62 @@ jobs:
       - name: Test
         run: go test ./... -count=1
 
+      - name: Test with race detector
+        run: go test -race -count=1 ./...
+
       - name: Build binaries
         run: |
           go build -o /tmp/sentrygate ./cmd/sentrygate
           go build -o /tmp/worker ./cmd/worker
           go build -o /tmp/agent-sim ./cmd/agent-sim
+
+  compose-smoke:
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      SENTRYGATE_AGENT_KEYS: agent-sim:ci-smoke-key-0123456789
+      SENTRYGATE_API_KEY: ci-smoke-key-0123456789
+      SENTRYGATE_URL: http://127.0.0.1:8080
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.27.x"
+
+      - name: Start stack
+        run: docker compose up -d --build
+
+      - name: Wait for proxy and worker
+        run: |
+          for i in $(seq 1 90); do
+            if curl -sf "$SENTRYGATE_URL/healthz" >/dev/null && curl -sf http://127.0.0.1:8081/readyz >/dev/null; then
+              echo "proxy and worker are up"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "stack did not become healthy in time" >&2
+          exit 1
+
+      # auto-setup registers the Temporal namespace shortly after the frontend
+      # starts, so the first attempt can fail with a start error. Each attempt
+      # uses fresh proposal IDs; a persistent failure still fails the job.
+      - name: Run scenarios with -check
+        run: |
+          for attempt in 1 2 3 4 5; do
+            if go run ./cmd/agent-sim -check all; then
+              exit 0
+            fi
+            echo "attempt $attempt failed; retrying in 10s" >&2
+            sleep 10
+          done
+          exit 1
+
+      - name: Compose logs
+        if: failure()
+        run: docker compose logs --no-color --tail=300
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

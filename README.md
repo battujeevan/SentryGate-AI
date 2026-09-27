@@ -1,112 +1,183 @@
 # SentryGate-AI
 
-**Deterministic agent control-plane firewall** in Go. Sits between autonomous LLM tool-calling agents and enterprise infrastructure APIs, enforcing non-bypassable policy, bounded concurrency, Temporal sagas with compensation, and an immutable audit trail.
+A deterministic policy gate between AI agents and infrastructure changes, written in Go.
+
+An agent submits a proposed change (command, target, payload) over HTTP. SentryGate authenticates the agent, evaluates the proposal against a static policy (declared agents, a command catalogue, a target registry and per-environment rules), records the decision, and only for an `ALLOW` starts a Temporal workflow. That workflow re-evaluates the proposal against the current policy before running a **simulated** infrastructure adapter.
 
 [![CI](https://github.com/battujeevan/SentryGate-AI/actions/workflows/ci.yml/badge.svg)](https://github.com/battujeevan/SentryGate-AI/actions/workflows/ci.yml)
 
-## Why it exists
+## Status
 
-Prompt rules do not stop an agent from calling `DELETE_POLICY` on a root edge profile. SentryGate treats tool-calls as **control-plane mutations**: validate → throttle → durable apply → rollback → audit.
+| | |
+|---|---|
+| **Implemented** | Per-agent API keys resolved to an agent identity. Strict JSON ingress (unknown fields such as `risk_score` are rejected). Deterministic policy evaluation with `ALLOW` / `DENY` / `REQUIRE_APPROVAL` verdicts and stable reason codes. Strictly validated policy file with SHA-256 digest and digest-based hot reload that keeps the last good policy. A decision record for each evaluated, well-formed request, written before any workflow starts. There are two exceptions. A request cancelled before evaluation gets `503` and no record. If the record write fails, the failure is logged and nothing executes (see [SECURITY.md](SECURITY.md)). Canonical request hash. Workflow re-validation before any side effect. SQLite storage in WAL mode. |
+| **Simulated** | The infrastructure adapter: dispatch prints and succeeds (or fails for `FAILING_NODE`), and compensation prints. The F5 / Zscaler clients in `proxy/clients.go` are in-memory test doubles and are not wired to the workflow. |
+| **Planned** | An approval workflow for `REQUIRE_APPROVAL` (today it is only a verdict; nothing is executed). Idempotent dispatch, pre-image based compensation, per-target serialization and tamper-evident records. |
+| **Out of scope** | Judging whether a change is wise, prompt-injection defense, real vendor credentials, multi-node deployment, UI. |
 
-## Architecture (short)
+## How a request is decided
 
 ```
-AI Agent ──JSON──► Proxy (auth + policy) ──► Temporal Saga ──► F5 / Zscaler / cloud APIs
-                         │                         │
-                         └────── SQLite audit ◄────┘
+Agent ──X-API-Key──► auth (key → agent ID)
+                      │
+                      ▼
+            strict decode (64 KiB, one JSON object, no unknown fields)
+                      │  malformed → 400/413, logged, not recorded
+                      ▼
+            policy evaluation ──► decision record (SQLite)
+                      │
+      DENY → 403 "rejected"      REQUIRE_APPROVAL → 403 "not_executed"
+                      │ ALLOW (only if the record was written, else 503)
+                      ▼
+            Temporal workflow (409 "not_executed" if one is already running for this ID)
+              1. re-evaluate against the worker's current policy
+                 non-ALLOW → record + REVALIDATION_DENIED, nothing dispatched
+              2. simulated dispatch → compensation on failure
+              3. audit rows per phase
 ```
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) and [SECURITY.md](SECURITY.md).
+Checks run in a fixed order and every applicable deny reason is reported:
+
+1. `AGENT_UNKNOWN`: the authenticated agent is not declared in the policy.
+2. `COMMAND_UNKNOWN`: the command is not in the catalogue.
+3. `COMMAND_NOT_PERMITTED_FOR_AGENT`: the agent may not issue this command.
+4. `TARGET_UNREGISTERED`: the target is not in the registry.
+5. `TARGET_PROTECTED`: protected targets deny every mutation.
+6. The environment rule for the target's environment: `allow` gives `ENVIRONMENT_ALLOWED`, `require_approval` gives `APPROVAL_REQUIRED`, and `deny` gives `ENVIRONMENT_DENIED`.
+
+`DENY` beats `REQUIRE_APPROVAL`, which beats `ALLOW`. The response and the record list only the reasons that decided the verdict.
 
 ## Quick demo (Docker)
 
-Prerequisites: Docker, Docker Compose, Go 1.27+.
+Prerequisites: Docker with Compose, Go 1.27+.
 
 ```powershell
-# Windows
-.\scripts\demo.ps1
+.\scripts\demo.ps1          # Windows
 ```
 
 ```bash
-# macOS / Linux
-chmod +x scripts/demo.sh
-./scripts/demo.sh
+./scripts/demo.sh           # macOS / Linux
 ```
 
-This brings up Temporal, the worker, and the proxy, then runs three scenarios:
+This starts Temporal, the worker and the proxy (all ports bound to `127.0.0.1`), then runs the simulator:
 
-| Scenario | What you should see |
-|----------|---------------------|
-| **deny** | `403` — `ROOT_CORE_EDGE` delete blocked |
-| **allow** | `200` — saga started; audit trail shows PASS phases |
-| **rollback** | `200` accept, activity fails on `FAILING_NODE`, compensation + FAIL audit |
+| Scenario | Proposal | Expected |
+|---|---|---|
+| `protected-delete` | `DELETE_POLICY` on `ROOT_CORE_EDGE` | `403` `DENY` `TARGET_PROTECTED` |
+| `protected-modify` | `MODIFY_ROUTING` on `ROOT_CORE_EDGE` | `403` `DENY` `TARGET_PROTECTED` |
+| `unknown-command` | `REBOOT_ALL` on `edge-node-west-1` | `403` `DENY` `COMMAND_UNKNOWN` |
+| `unregistered-target` | `MODIFY_ROUTING` on `shadow-edge-9` | `403` `DENY` `TARGET_UNREGISTERED` |
+| `approval-required` | `UPDATE_CERTIFICATE` on `prod-payments-edge` | `403` `REQUIRE_APPROVAL`, not executed |
+| `allowed` | `MODIFY_ROUTING` on `edge-node-west-1` | `200` `ALLOW`, workflow completes |
+| `rollback` | `UPDATE_CERTIFICATE` on `FAILING_NODE` | `200` `ALLOW`, simulated dispatch fails, compensation runs |
 
-- Proxy: http://localhost:8080  
-- Temporal UI: http://localhost:8088  
-- Default API key: `dev-secret-change-me` (override with `SENTRYGATE_API_KEY`)
+`go run ./cmd/agent-sim -check all` runs the same scenarios and exits non-zero if any status, verdict, decision record or workflow outcome differs from the table. CI runs this against the Compose stack.
 
-### Manual agent-sim
-
-```bash
-export SENTRYGATE_API_KEY=dev-secret-change-me
-go run ./cmd/agent-sim all
-```
-
-## Local binaries (without Compose)
-
-```bash
-cp .env.example .env
-# start Temporal: temporal server start-dev   OR use compose for Temporal only
-
-export SENTRYGATE_API_KEY=dev-secret-change-me
-go run ./cmd/worker &
-go run ./cmd/sentrygate
-```
-
-## HTTP API
-
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/healthz` | no | Liveness |
-| GET | `/readyz` | no | Readiness (audit DB) |
-| POST | `/v1/intercept` | `X-API-Key` | Validate + start saga |
-| GET | `/v1/audit/{proposal_id}` | `X-API-Key` | Audit rows |
-| GET | `/v1/policy` | `X-API-Key` | Active policy snapshot |
-
-## Performance
-
-```bash
-go test ./proxy -bench=BenchmarkProxy -benchmem
-```
-
-Typical results (Windows, Go 1.27, i5-13420H):
-
-```
-BenchmarkProxyInterceptorThroughput-12     ~5 ns/op     0 B/op    0 allocs/op
-BenchmarkProxyHighConcurrencyAllocations-12 ~100 ns/op  0 B/op    0 allocs/op
-```
+- Proxy: http://localhost:8080
+- Temporal UI: http://localhost:8088
+- Demo key: `dev-secret-change-me` for agent `agent-sim` (override with `SENTRYGATE_AGENT_KEYS` / `SENTRYGATE_API_KEY`)
 
 ## Configuration
 
-See [.env.example](.env.example). Policy pack: [policies/default.yaml](policies/default.yaml) (hot-reloaded).
+Agent keys are supplied to the proxy as `agent-id:key` pairs and never appear in the policy file:
 
-## Repo layout
-
-```
-cmd/sentrygate   Ingress proxy
-cmd/worker       Temporal worker
-cmd/agent-sim    Demo client
-proxy/           Firewall + vendor client mocks
-workflows/       Saga + compensation
-shared/contracts Compliance types & errors
-internal/        Config, auth, audit DB, policy, telemetry
-policies/        Hot-reloadable policy YAML
+```bash
+export SENTRYGATE_AGENT_KEYS="agent-sim:$(openssl rand -hex 24),deploy-bot:$(openssl rand -hex 24)"
 ```
 
-## Downstream vendors
+The proxy refuses to start on malformed entries, duplicate agent IDs, duplicate keys, keys shorter than 16 bytes, or keys containing whitespace. Presented keys are compared against SHA-256 digests of the configured keys, in constant time. Keys are never logged, recorded or returned. The raw `SENTRYGATE_AGENT_KEYS` value still exists in the process environment and configuration, so protect it like any other secret.
 
-Mock F5 / Zscaler clients ship for demos. Live wiring notes: [INTEGRATION.md](INTEGRATION.md).
+The policy ([policies/default.yaml](policies/default.yaml)) is strictly validated: unknown fields, missing fields, duplicates and invalid values are rejected, and there are no defaults.
+
+```yaml
+version: "2026-09-27.1"
+max_parallel_tasks: 64          # startup only
+environments: {staging: allow, production: require_approval}
+commands: [MODIFY_ROUTING, UPDATE_CERTIFICATE, DELETE_POLICY]
+agents:
+  - {id: agent-sim, commands: [MODIFY_ROUTING, UPDATE_CERTIFICATE, DELETE_POLICY]}
+targets:
+  - {id: ROOT_CORE_EDGE, environment: production, protected: true}
+  - {id: edge-node-west-1, environment: staging, protected: false}
+```
+
+The proxy and the worker each re-read the file every `SENTRYGATE_POLICY_RELOAD` (default 5s) and switch when its SHA-256 digest changes. An invalid file is rejected, logged, reported by `GET /v1/policy`, and the last good policy stays active. An invalid policy at startup stops the process. See [.env.example](.env.example) for all variables.
+
+## HTTP API
+
+All `/v1/*` routes require `X-API-Key`.
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/healthz` | Liveness |
+| GET | `/readyz` | Readiness (audit database) |
+| POST | `/v1/intercept` | Submit a proposal: `{"id","type","target_id","payload"}` |
+| GET | `/v1/decisions/{proposal_id}` | Decision records (ingress and workflow re-validation) |
+| GET | `/v1/audit/{proposal_id}` | Workflow phase records |
+| GET | `/v1/policy` | Active policy version, digest, load time and reload status (no policy contents) |
+
+`POST /v1/intercept` responses:
+
+| Status | Meaning |
+|---|---|
+| `200` `accepted` | `ALLOW`; decision recorded, workflow started |
+| `403` `rejected` | `DENY` |
+| `403` `not_executed` | `REQUIRE_APPROVAL`; recorded, nothing executed |
+| `400` | Malformed JSON, unknown field, trailing data, or invalid `id` (`^[A-Za-z0-9._:-]{1,128}$`) |
+| `401` | Missing or unknown key |
+| `409` `not_executed` | `ALLOW` recorded, but a workflow for this proposal ID is already running; this request was not executed |
+| `413` | Body over 64 KiB |
+| `502` | Workflow start failed or its outcome is unknown (generic message); check `GET /v1/decisions/{proposal_id}` before retrying |
+| `503` | Cancelled before evaluation, or `ALLOW` could not be recorded; nothing was started |
+
+## Tests
+
+```bash
+go test ./...
+make race    # go test -race ./... (needs a C toolchain; runs in CI)
+make bench
+```
+
+The tests cover authentication and identity, every decision rule, decision records (identity, policy version and digest, request hash), write-failure behaviour, HTTP hardening, policy reload edge cases, and workflow re-validation for direct Temporal submissions and policy tightened between ingress and execution.
+
+Policy evaluation benchmark, from a single local run (Windows, Go 1.27, i5-13420H; indicative only):
+
+```
+BenchmarkProxyEvaluate-12                    68 ns/op   16 B/op   1 allocs/op
+BenchmarkProxyEvaluateThrottledParallel-12  252 ns/op   16 B/op   1 allocs/op
+```
+
+This measures evaluation only, not HTTP, SQLite or Temporal.
+
+## Limitations
+
+- **SentryGate only gates what is routed through it.** An agent that holds infrastructure credentials can bypass it entirely. The agent must have no direct access.
+- **Temporal, its database, the worker and the audit volume are trusted.** Temporal is unauthenticated in the Compose stack. Anyone who can start workflows on the task queue can claim any agent ID. Re-validation still enforces the policy, but not the identity.
+- **No semantic judgment.** A permitted command on a permitted target is allowed even if the payload is a bad idea.
+- **No prompt-injection defense.** An injected agent issuing a permitted command is indistinguishable from a legitimate one.
+- **Single node.** SQLite, with no HA. `max_parallel_tasks` is applied at startup only.
+- **Simulated adapter.** Nothing touches real infrastructure. Compensation is best effort, runs once, and is not idempotent.
+- **Approval is a verdict, not a workflow.** `REQUIRE_APPROVAL` requests are recorded and refused; there is no way to approve them yet.
+- Records are append-only in code but not tamper-evident. Anyone with access to the database file can modify them.
+
+## Repository layout
+
+```
+cmd/sentrygate     HTTP ingress (handler.go) and wiring (main.go)
+cmd/worker         Temporal worker
+cmd/agent-sim      Scenario simulator with -check
+internal/policy    Policy schema, validation, loader
+internal/decision  Evaluation, request hash, decision store interface
+internal/auth      Agent keyring and middleware
+internal/audit     SQLite store (decisions + workflow audit)
+proxy/             Throttled evaluator; simulated F5/Zscaler clients (tests only)
+workflows/         Re-validation, simulated dispatch and compensation, audit
+shared/contracts   Wire and record types
+policies/          Policy file
+```
+
+More detail: [ARCHITECTURE.md](ARCHITECTURE.md), [SECURITY.md](SECURITY.md), [INTEGRATION.md](INTEGRATION.md), [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
-Apache-2.0 — see [LICENSE](LICENSE).
+Apache-2.0. See [LICENSE](LICENSE).

@@ -1,3 +1,9 @@
+# Local development stack. Not a production deployment.
+#
+# Trusted computing base: Temporal, its Postgres database, the worker and the
+# shared audit volume. Temporal has no authentication here, so anyone who can
+# reach port 7233 can start workflows and claim any agent ID. Every host port
+# is therefore bound to 127.0.0.1; do not publish them on other interfaces.
 services:
   postgresql:
     image: postgres:16-alpine
@@ -26,7 +32,7 @@ services:
       - POSTGRES_SEEDS=postgresql
       - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
     ports:
-      - "7233:7233"
+      - "127.0.0.1:7233:7233"
     volumes:
       - ./deploy/temporal/dynamicconfig:/etc/temporal/config/dynamicconfig
 
@@ -38,7 +44,7 @@ services:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_CORS_ORIGINS=http://localhost:3000
     ports:
-      - "8088:8080"
+      - "127.0.0.1:8088:8080"
 
   worker:
     build:
@@ -52,14 +58,17 @@ services:
       TEMPORAL_HOST_PORT: temporal:7233
       TEMPORAL_NAMESPACE: default
       TEMPORAL_TASK_QUEUE: sentrygate-saga
+      SENTRYGATE_POLICY_PATH: /app/policies/default.yaml
+      SENTRYGATE_POLICY_RELOAD: 5s
       SENTRYGATE_AUDIT_DB: /data/audit.db
       SENTRYGATE_WORKER_HEALTH_ADDR: ":8081"
       OTEL_EXPORTER: none
       OTEL_SERVICE_NAME: sentrygate
     volumes:
       - audit-data:/data
+      - ./policies:/app/policies:ro
     ports:
-      - "8081:8081"
+      - "127.0.0.1:8081:8081"
     restart: unless-stopped
 
   proxy:
@@ -73,11 +82,13 @@ services:
       - worker
     environment:
       SENTRYGATE_ADDR: ":8080"
-      SENTRYGATE_API_KEY: ${SENTRYGATE_API_KEY:-dev-secret-change-me}
+      # agent-id:key pairs. The default is for local demos only.
+      SENTRYGATE_AGENT_KEYS: ${SENTRYGATE_AGENT_KEYS:-agent-sim:dev-secret-change-me}
       TEMPORAL_HOST_PORT: temporal:7233
       TEMPORAL_NAMESPACE: default
       TEMPORAL_TASK_QUEUE: sentrygate-saga
       SENTRYGATE_POLICY_PATH: /app/policies/default.yaml
+      SENTRYGATE_POLICY_RELOAD: 5s
       SENTRYGATE_AUDIT_DB: /data/audit.db
       OTEL_EXPORTER: none
       OTEL_SERVICE_NAME: sentrygate
@@ -85,7 +96,7 @@ services:
       - audit-data:/data
       - ./policies:/app/policies:ro
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     restart: unless-stopped
 
 volumes:

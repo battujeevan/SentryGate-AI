@@ -7,12 +7,13 @@ import (
 	"github.com/battujeevan/SentryGate-AI/shared/contracts"
 )
 
-// InfrastructureActivities encapsulates side-effecting infrastructure mutations
-// and their compensating rollbacks for the SentryGate saga.
+// InfrastructureActivities is a simulated infrastructure adapter. It performs
+// no real changes: dispatch prints the proposal and succeeds, except for
+// FAILING_NODE, which fails so the compensation path can be exercised.
 type InfrastructureActivities struct{}
 
-// DispatchConfig applies a validated AgentProposal to the target edge node.
-// Returns NonRetryableInfraError for structural faults that must fail loud.
+// DispatchConfig simulates applying a proposal. It returns
+// NonRetryableInfraError for FAILING_NODE.
 func (a *InfrastructureActivities) DispatchConfig(ctx context.Context, prop contracts.AgentProposal) error {
 	select {
 	case <-ctx.Done():
@@ -20,7 +21,7 @@ func (a *InfrastructureActivities) DispatchConfig(ctx context.Context, prop cont
 	default:
 	}
 
-	fmt.Printf("[Activity] Applying policy update on edge node: %s (cmd=%s)\n", prop.TargetID, prop.Type)
+	fmt.Printf("[simulated dispatch] target=%s cmd=%s proposal=%s\n", prop.TargetID, prop.Type, prop.ID)
 
 	if prop.TargetID == contracts.FailingNodeID {
 		return contracts.NonRetryableInfraError
@@ -28,7 +29,8 @@ func (a *InfrastructureActivities) DispatchConfig(ctx context.Context, prop cont
 	return nil
 }
 
-// RevertStateCompensation rolls infrastructure back to its last known stable state.
+// RevertStateCompensation simulates a compensating action. It restores no
+// real state.
 func (a *InfrastructureActivities) RevertStateCompensation(ctx context.Context, prop contracts.AgentProposal) error {
 	select {
 	case <-ctx.Done():
@@ -36,6 +38,6 @@ func (a *InfrastructureActivities) RevertStateCompensation(ctx context.Context, 
 	default:
 	}
 
-	fmt.Printf("[CRITICAL ROLLBACK] Compensating transaction %s. Reverting %s to stable state.\n", prop.ID, prop.TargetID)
+	fmt.Printf("[simulated compensation] proposal=%s target=%s\n", prop.ID, prop.TargetID)
 	return nil
 }
