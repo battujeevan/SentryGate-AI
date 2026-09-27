@@ -2,19 +2,18 @@ package contracts
 
 import "time"
 
-// AuditPhase identifies a discrete validation or saga stage recorded
-// into the immutable audit trail.
+// AuditPhase identifies a workflow stage recorded in the audit trail.
 type AuditPhase string
 
 const (
-	AuditPhaseIngressValidation AuditPhase = "INGRESS_VALIDATION"
-	AuditPhaseDispatch          AuditPhase = "DISPATCH_CONFIG"
-	AuditPhaseCompensation      AuditPhase = "COMPENSATION_ROLLBACK"
-	AuditPhaseWorkflowComplete  AuditPhase = "WORKFLOW_COMPLETE"
-	AuditPhaseWorkflowFailed    AuditPhase = "WORKFLOW_FAILED"
+	AuditPhaseRevalidation     AuditPhase = "WORKFLOW_REVALIDATION"
+	AuditPhaseDispatch         AuditPhase = "DISPATCH_CONFIG"
+	AuditPhaseCompensation     AuditPhase = "COMPENSATION_ROLLBACK"
+	AuditPhaseWorkflowComplete AuditPhase = "WORKFLOW_COMPLETE"
+	AuditPhaseWorkflowFailed   AuditPhase = "WORKFLOW_FAILED"
 )
 
-// AuditVerdict is the deterministic pass/fail outcome of a recorded phase.
+// AuditVerdict is the pass/fail outcome of a recorded phase.
 type AuditVerdict string
 
 const (
@@ -22,8 +21,7 @@ const (
 	AuditVerdictFail AuditVerdict = "FAIL"
 )
 
-// AuditRecord is an immutable row suitable for enterprise security audits.
-// Fields are intentionally flat and JSON-serializable for table storage.
+// AuditRecord is an append-only row describing one workflow phase.
 type AuditRecord struct {
 	RecordID   string       `json:"record_id"`
 	ProposalID string       `json:"proposal_id"`

@@ -3,56 +3,75 @@ package proxy_test
 import (
 	"context"
 	"errors"
+	"sync/atomic"
 	"testing"
 
+	"github.com/battujeevan/SentryGate-AI/internal/policy"
 	"github.com/battujeevan/SentryGate-AI/proxy"
 	"github.com/battujeevan/SentryGate-AI/shared/contracts"
 )
 
-func TestInterceptAndValidate_RiskCeiling(t *testing.T) {
-	cfg := contracts.DefaultPolicyConfig()
-	p := proxy.NewSentryProxy(cfg, nil, nil)
+const benchPolicy = `version: bench
+max_parallel_tasks: 64
+environments:
+  staging: allow
+  production: require_approval
+commands: [MODIFY_ROUTING, UPDATE_CERTIFICATE, DELETE_POLICY]
+agents:
+  - id: agent-a
+    commands: [MODIFY_ROUTING, UPDATE_CERTIFICATE, DELETE_POLICY]
+targets:
+  - {id: ROOT_CORE_EDGE, environment: production, protected: true}
+  - {id: edge-node-west-1, environment: staging, protected: false}
+`
 
-	prop := &contracts.AgentProposal{
-		ID:        "p-1",
-		Type:      contracts.CmdModifyRouting,
-		TargetID:  "edge-a",
-		RiskScore: cfg.MaxRiskCeiling + 0.01,
+func mustParse(t testing.TB, doc string) *policy.Snapshot {
+	t.Helper()
+	s, err := policy.Parse([]byte(doc))
+	if err != nil {
+		t.Fatal(err)
 	}
-	err := p.InterceptAndValidate(context.Background(), prop)
-	if !errors.Is(err, contracts.ErrRiskCeilingBreach) {
-		t.Fatalf("expected ErrRiskCeilingBreach, got %v", err)
+	return s
+}
+
+// swappableSource lets a test replace the active snapshot between calls.
+type swappableSource struct {
+	p atomic.Pointer[policy.Snapshot]
+}
+
+func (s *swappableSource) Current() *policy.Snapshot { return s.p.Load() }
+
+func TestEvaluateUsesCurrentSnapshot(t *testing.T) {
+	src := &swappableSource{}
+	src.p.Store(mustParse(t, benchPolicy))
+	p := proxy.NewSentryProxy(src, 4)
+	prop := &contracts.AgentProposal{ID: "p", Type: contracts.CmdModifyRouting, TargetID: "edge-node-west-1"}
+
+	if d := p.Evaluate("agent-a", prop); d.Verdict != contracts.VerdictAllow {
+		t.Fatalf("expected ALLOW, got %+v", d)
+	}
+
+	src.p.Store(mustParse(t, `version: tightened
+max_parallel_tasks: 64
+environments: {staging: allow, production: require_approval}
+commands: [MODIFY_ROUTING]
+agents: [{id: agent-a, commands: [MODIFY_ROUTING]}]
+targets:
+  - {id: edge-node-west-1, environment: staging, protected: true}
+`))
+	d := p.Evaluate("agent-a", prop)
+	if d.Verdict != contracts.VerdictDeny || d.PolicyVersion != "tightened" {
+		t.Fatalf("policy swap not observed: %+v", d)
 	}
 }
 
-func TestInterceptAndValidate_RootCoreBlocked(t *testing.T) {
-	cfg := contracts.DefaultPolicyConfig()
-	p := proxy.NewSentryProxy(cfg, nil, nil)
-
-	prop := &contracts.AgentProposal{
-		ID:        "p-2",
-		Type:      contracts.CmdDeletePolicy,
-		TargetID:  contracts.RootCoreEdgeID,
-		RiskScore: 0.1,
-	}
-	err := p.InterceptAndValidate(context.Background(), prop)
-	if !errors.Is(err, contracts.ErrRootCoreMutation) {
-		t.Fatalf("expected ErrRootCoreMutation, got %v", err)
-	}
-}
-
-func TestInterceptAndValidate_AcceptsSafeProposal(t *testing.T) {
-	cfg := contracts.DefaultPolicyConfig()
-	p := proxy.NewSentryProxy(cfg, nil, nil)
-
-	prop := &contracts.AgentProposal{
-		ID:        "p-3",
-		Type:      contracts.CmdUpdateCert,
-		TargetID:  "vs-web-01",
-		RiskScore: 0.2,
-	}
-	if err := p.InterceptAndValidate(context.Background(), prop); err != nil {
-		t.Fatalf("expected accept, got %v", err)
+func TestEvaluateThrottledHonoursCancellation(t *testing.T) {
+	p := proxy.NewSentryProxy(policy.StaticSource(mustParse(t, benchPolicy)), 1)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	_, err := p.EvaluateThrottled(ctx, "agent-a", &contracts.AgentProposal{})
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("expected context.Canceled, got %v", err)
 	}
 }
 
@@ -100,60 +119,43 @@ func TestMockZscalerPolicyFlow(t *testing.T) {
 	}
 }
 
-// productionProxyFloor builds the production-grade SentryProxy floor model used
-// by throughput and allocation benchmarks (risk ceiling 0.75, pool depth 50000).
-func productionProxyFloor() *proxy.SentryProxy {
-	return proxy.NewSentryProxy(contracts.PolicyConfig{
-		MaxRiskCeiling:   0.75,
-		MaxParallelTasks: 50000,
-		ProtectedTargets: []string{contracts.RootCoreEdgeID},
-	}, nil, nil)
-}
-
-// passingProposal is a pre-built AgentProposal that clears every deterministic
-// firewall rule. Allocated once outside timed loops to isolate check cost.
 func passingProposal() *contracts.AgentProposal {
 	return &contracts.AgentProposal{
-		ID:        "bench-proposal-001",
-		Type:      contracts.CmdModifyRouting,
-		TargetID:  "edge-node-west-1",
-		Payload:   `{"route":"stable"}`,
-		RiskScore: 0.42,
+		ID:       "bench-proposal-001",
+		Type:     contracts.CmdModifyRouting,
+		TargetID: "edge-node-west-1",
+		Payload:  `{"route":"stable"}`,
 	}
 }
 
-// BenchmarkProxyInterceptorThroughput measures InterceptAndValidate hot-path
-// cost with proposal and proxy construction excluded from the timer.
-func BenchmarkProxyInterceptorThroughput(b *testing.B) {
-	p := productionProxyFloor()
-	proposal := passingProposal()
-	ctx := context.Background()
-
+// BenchmarkProxyEvaluate measures the policy evaluation hot path with proxy
+// and proposal construction excluded from the timer.
+func BenchmarkProxyEvaluate(b *testing.B) {
+	p := proxy.NewSentryProxy(policy.StaticSource(mustParse(b, benchPolicy)), 64)
+	prop := passingProposal()
 	b.ReportAllocs()
 	b.ResetTimer()
-
 	for i := 0; i < b.N; i++ {
-		if err := p.InterceptAndValidate(ctx, proposal); err != nil {
-			b.Fatal(err)
+		if d := p.Evaluate("agent-a", prop); d.Verdict != contracts.VerdictAllow {
+			b.Fatal(d)
 		}
 	}
 }
 
-// BenchmarkProxyHighConcurrencyAllocations stress-tests the bounded worker
-// pool under GOMAXPROCS parallel load and asserts the validation path stays
-// at zero heap traffic (0 B/op, 0 allocs/op).
-func BenchmarkProxyHighConcurrencyAllocations(b *testing.B) {
-	p := productionProxyFloor()
-	proposal := passingProposal()
+// BenchmarkProxyEvaluateThrottledParallel measures evaluation through the
+// bounded slot pool under GOMAXPROCS parallel callers.
+func BenchmarkProxyEvaluateThrottledParallel(b *testing.B) {
+	p := proxy.NewSentryProxy(policy.StaticSource(mustParse(b, benchPolicy)), 64)
+	prop := passingProposal()
 	ctx := context.Background()
-
 	b.ReportAllocs()
 	b.ResetTimer()
-
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			if err := p.InterceptAndValidateThrottled(ctx, proposal); err != nil {
-				b.Fatal(err)
+			d, err := p.EvaluateThrottled(ctx, "agent-a", prop)
+			if err != nil || d.Verdict != contracts.VerdictAllow {
+				b.Error(d, err)
+				return
 			}
 		}
 	})

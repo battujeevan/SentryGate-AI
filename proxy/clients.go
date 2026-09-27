@@ -2,7 +2,6 @@ package proxy
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"sync"
 	"time"
@@ -10,8 +9,12 @@ import (
 	"github.com/battujeevan/SentryGate-AI/shared/contracts"
 )
 
+// The F5 and Zscaler types below are in-memory simulators used only by tests.
+// They make no network calls and are not wired into the workflow; the
+// workflow's infrastructure activity is itself simulated.
+
 // ==========================================
-// F5 BIG-IP mock network framework
+// F5 BIG-IP simulator
 // ==========================================
 
 // CertUpdateRequest models a Let's Encrypt-driven TLS certificate rotation
@@ -28,10 +31,10 @@ type CertUpdateRequest struct {
 
 // CertUpdateResult is the downstream acknowledgement of a cert push.
 type CertUpdateResult struct {
-	ProfileName   string    `json:"profile_name"`
-	AppliedAt     time.Time `json:"applied_at"`
-	FingerprintSHA string   `json:"fingerprint_sha"`
-	TLSVersion    string    `json:"tls_version"`
+	ProfileName    string    `json:"profile_name"`
+	AppliedAt      time.Time `json:"applied_at"`
+	FingerprintSHA string    `json:"fingerprint_sha"`
+	TLSVersion     string    `json:"tls_version"`
 }
 
 // RoutingUpdateRequest models an F5 traffic-routing policy mutation.
@@ -84,8 +87,7 @@ func (c *MockF5Client) Authenticate(ctx context.Context) error {
 	if c.FailAuth {
 		return contracts.ErrAuthHandshakeFailed
 	}
-	// Simulate mTLS handshake negotiation against BIG-IP iControl REST.
-	_ = tls.VersionTLS13
+	// No network or TLS: the simulator only issues a fake session token.
 	c.token = fmt.Sprintf("f5-mock-token-%d", time.Now().UnixNano())
 	c.authenticated = true
 	return nil
@@ -154,7 +156,7 @@ func (c *MockF5Client) HealthProbe(ctx context.Context) error {
 }
 
 // ==========================================
-// Zscaler Zero-Trust mock network framework
+// Zscaler Zero-Trust simulator
 // ==========================================
 
 // ZscalerPolicyAction enumerates Zero-Trust policy mutations.

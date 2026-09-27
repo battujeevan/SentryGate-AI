@@ -9,15 +9,14 @@ import (
 	"github.com/battujeevan/SentryGate-AI/shared/contracts"
 )
 
-// AuditStore persists immutable AuditRecord rows for enterprise security audits.
-// Implementations must treat writes as append-only.
+// AuditStore persists workflow AuditRecord rows. Implementations only insert;
+// they expose no update or delete operation.
 type AuditStore interface {
 	Append(ctx context.Context, record contracts.AuditRecord) error
 	ListByProposal(ctx context.Context, proposalID string) ([]contracts.AuditRecord, error)
 }
 
-// MemoryAuditStore is an in-process immutable audit table suitable for
-// local development and Temporal worker unit tests.
+// MemoryAuditStore is an in-process append-only audit table for tests.
 type MemoryAuditStore struct {
 	mu      sync.RWMutex
 	records []contracts.AuditRecord
@@ -78,13 +77,12 @@ func (s *MemoryAuditStore) All() []contracts.AuditRecord {
 	return out
 }
 
-// AuditActivities exposes Temporal activities that write immutable audit rows.
+// AuditActivities exposes the Temporal activity that writes audit rows.
 type AuditActivities struct {
 	Store AuditStore
 }
 
-// RecordAuditTrail persists a single AuditRecord. Invoked from workflow state
-// tracker hooks so every validation pass is durable and queryable.
+// RecordAuditTrail persists a single AuditRecord for one workflow phase.
 func (a *AuditActivities) RecordAuditTrail(ctx context.Context, record contracts.AuditRecord) error {
 	if a.Store == nil {
 		return contracts.ErrAuditPersistFailed
@@ -92,7 +90,8 @@ func (a *AuditActivities) RecordAuditTrail(ctx context.Context, record contracts
 	return a.Store.Append(ctx, record)
 }
 
-// newAuditRecord builds a fully populated AuditRecord from workflow identity.
+// newAuditRecord builds an AuditRecord from workflow identity. The record ID
+// includes the run ID so a later run for the same proposal cannot collide.
 // recordedAt must come from workflow.Now(ctx) so Temporal replay stays deterministic.
 func newAuditRecord(
 	proposalID, workflowID, runID string,
@@ -104,7 +103,7 @@ func newAuditRecord(
 	seq int64,
 ) contracts.AuditRecord {
 	return contracts.AuditRecord{
-		RecordID:   fmt.Sprintf("%s-%s-%d", proposalID, phase, seq),
+		RecordID:   fmt.Sprintf("%s-%s-%s-%d", proposalID, runID, phase, seq),
 		ProposalID: proposalID,
 		WorkflowID: workflowID,
 		RunID:      runID,

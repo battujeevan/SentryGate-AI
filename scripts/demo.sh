@@ -4,7 +4,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+# The proxy maps keys to agent IDs via SENTRYGATE_AGENT_KEYS; agent-sim presents SENTRYGATE_API_KEY.
 export SENTRYGATE_API_KEY="${SENTRYGATE_API_KEY:-dev-secret-change-me}"
+export SENTRYGATE_AGENT_KEYS="${SENTRYGATE_AGENT_KEYS:-agent-sim:$SENTRYGATE_API_KEY}"
 export SENTRYGATE_URL="${SENTRYGATE_URL:-http://localhost:8080}"
 
 echo "==> Starting SentryGate stack (Temporal + worker + proxy)"
@@ -24,11 +26,11 @@ for i in $(seq 1 60); do
   fi
 done
 
-echo "==> Running agent-sim scenarios (deny / allow / rollback)"
+echo "==> Running agent-sim scenarios"
 go run ./cmd/agent-sim all
 
 echo ""
 echo "Demo complete."
 echo "  Proxy:       $SENTRYGATE_URL"
 echo "  Temporal UI: http://localhost:8088"
-echo "  API key:     $SENTRYGATE_API_KEY"
+echo "  Verify:      go run ./cmd/agent-sim -check all"

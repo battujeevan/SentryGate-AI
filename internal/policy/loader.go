@@ -2,132 +2,188 @@ package policy
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"sync"
 	"sync/atomic"
 	"time"
-
-	"gopkg.in/yaml.v3"
-
-	"github.com/battujeevan/SentryGate-AI/shared/contracts"
 )
 
-// File holds an on-disk policy document that mirrors contracts.PolicyConfig.
-type File struct {
-	MaxRiskCeiling   float64  `yaml:"max_risk_ceiling"`
-	MaxParallelTasks int      `yaml:"max_parallel_tasks"`
-	ProtectedTargets []string `yaml:"protected_targets"`
+// Load reads and strictly validates the policy file at path.
+func Load(path string) (*Snapshot, error) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("policy: read: %w", err)
+	}
+	return Parse(raw)
 }
 
-func (f File) ToConfig() contracts.PolicyConfig {
-	cfg := contracts.PolicyConfig{
-		MaxRiskCeiling:   f.MaxRiskCeiling,
-		MaxParallelTasks: f.MaxParallelTasks,
-		ProtectedTargets: append([]string(nil), f.ProtectedTargets...),
-	}
-	if cfg.MaxRiskCeiling == 0 {
-		cfg.MaxRiskCeiling = contracts.DefaultPolicyConfig().MaxRiskCeiling
-	}
-	if cfg.MaxParallelTasks == 0 {
-		cfg.MaxParallelTasks = contracts.DefaultPolicyConfig().MaxParallelTasks
-	}
-	if len(cfg.ProtectedTargets) == 0 {
-		cfg.ProtectedTargets = contracts.DefaultPolicyConfig().ProtectedTargets
-	}
-	return cfg
+// Status describes the active policy and the outcome of the last reload attempt.
+type Status struct {
+	Version           string     `json:"version"`
+	Digest            string     `json:"digest"`
+	LoadedAt          time.Time  `json:"loaded_at"`
+	MaxParallelTasks  int        `json:"max_parallel_tasks"`
+	ReloadStatus      string     `json:"reload_status"`
+	LastReloadError   string     `json:"last_reload_error,omitempty"`
+	LastReloadErrorAt *time.Time `json:"last_reload_error_at,omitempty"`
 }
 
-// Loader watches a YAML policy file and hot-reloads it on an interval.
+// Loader holds the active policy and re-reads the file on an interval. A
+// change is detected by comparing SHA-256 digests of the file contents, so it
+// does not depend on modification times or on which fields changed. An invalid
+// file never replaces the active policy.
 type Loader struct {
-	path     string
-	interval time.Duration
-	current  atomic.Value // contracts.PolicyConfig
-	mu       sync.Mutex
-	lastMod  time.Time
-	stop     chan struct{}
+	path string
+	log  *slog.Logger
+
+	current  atomic.Pointer[Snapshot]
+	reloadMu sync.Mutex // serializes Reload
+
+	mu         sync.Mutex // guards the fields below
+	loadedAt   time.Time
+	lastErr    string
+	lastErrAt  time.Time
+	lastBadKey string
+
+	stop      chan struct{}
+	done      chan struct{}
+	closeOnce sync.Once
 }
 
-// NewLoader reads the initial policy and starts a background reload loop.
-func NewLoader(path string, interval time.Duration) (*Loader, error) {
-	l := &Loader{
-		path:     path,
-		interval: interval,
-		stop:     make(chan struct{}),
+// NewLoader loads the policy at path and fails if it is invalid. When interval
+// is positive, a background goroutine calls Reload on that interval.
+func NewLoader(path string, interval time.Duration, log *slog.Logger) (*Loader, error) {
+	if log == nil {
+		log = slog.New(slog.DiscardHandler)
 	}
-	cfg, mod, err := readPolicyFile(path)
+	s, err := Load(path)
 	if err != nil {
 		return nil, err
 	}
-	l.current.Store(cfg)
-	l.lastMod = mod
-	go l.loop()
+	l := &Loader{
+		path:     path,
+		log:      log,
+		loadedAt: time.Now().UTC(),
+		stop:     make(chan struct{}),
+		done:     make(chan struct{}),
+	}
+	l.current.Store(s)
+	if interval > 0 {
+		go l.loop(interval)
+	} else {
+		close(l.done)
+	}
 	return l, nil
 }
 
-// Get returns the latest policy snapshot.
-func (l *Loader) Get() contracts.PolicyConfig {
-	return l.current.Load().(contracts.PolicyConfig)
+// Current returns the active policy snapshot.
+func (l *Loader) Current() *Snapshot { return l.current.Load() }
+
+// Reload re-reads the policy file. If its digest differs from the active
+// policy and it validates, it becomes active. On any error the active policy
+// is kept and the error is recorded in Status.
+func (l *Loader) Reload() error {
+	l.reloadMu.Lock()
+	defer l.reloadMu.Unlock()
+
+	raw, err := os.ReadFile(l.path)
+	if err != nil {
+		err = fmt.Errorf("policy: read: %w", err)
+		l.recordError("read:"+err.Error(), err)
+		return err
+	}
+	cur := l.current.Load()
+	digest := rawDigest(raw)
+	if digest == cur.Digest() {
+		l.clearError()
+		return nil
+	}
+	next, err := Parse(raw)
+	if err != nil {
+		l.recordError(digest, err)
+		return err
+	}
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.lastErr, l.lastErrAt, l.lastBadKey = "", time.Time{}, ""
+	l.current.Store(next)
+	l.loadedAt = time.Now().UTC()
+	l.log.Info("policy reloaded",
+		"version", next.Version(),
+		"digest", next.Digest(),
+		"previous_version", cur.Version(),
+		"previous_digest", cur.Digest(),
+	)
+	if next.MaxParallelTasks() != cur.MaxParallelTasks() {
+		l.log.Warn("max_parallel_tasks changed but is applied at startup only; restart to take effect",
+			"configured", next.MaxParallelTasks())
+	}
+	return nil
 }
 
-// Close stops the reload loop.
-func (l *Loader) Close() {
-	select {
-	case <-l.stop:
-	default:
-		close(l.stop)
+func (l *Loader) clearError() {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.lastErr, l.lastErrAt, l.lastBadKey = "", time.Time{}, ""
+}
+
+// recordError keeps the active policy, records err for Status and logs it once
+// per distinct failure (badKey identifies the rejected content or read error).
+func (l *Loader) recordError(badKey string, err error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	first := badKey != l.lastBadKey
+	l.lastErr = err.Error()
+	l.lastErrAt = time.Now().UTC()
+	l.lastBadKey = badKey
+	if first {
+		cur := l.current.Load()
+		l.log.Error("policy reload rejected; keeping active policy",
+			"error", err,
+			"active_version", cur.Version(),
+			"active_digest", cur.Digest(),
+		)
 	}
 }
 
-func (l *Loader) loop() {
-	t := time.NewTicker(l.interval)
+// Status reports the active policy identity and the last reload error, if any.
+func (l *Loader) Status() Status {
+	cur := l.current.Load()
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	st := Status{
+		Version:          cur.Version(),
+		Digest:           cur.Digest(),
+		LoadedAt:         l.loadedAt,
+		MaxParallelTasks: cur.MaxParallelTasks(),
+		ReloadStatus:     "ok",
+	}
+	if l.lastErr != "" {
+		at := l.lastErrAt
+		st.ReloadStatus = "error"
+		st.LastReloadError = l.lastErr
+		st.LastReloadErrorAt = &at
+	}
+	return st
+}
+
+// Close stops the reload loop and waits for it to exit.
+func (l *Loader) Close() {
+	l.closeOnce.Do(func() { close(l.stop) })
+	<-l.done
+}
+
+func (l *Loader) loop(interval time.Duration) {
+	defer close(l.done)
+	t := time.NewTicker(interval)
 	defer t.Stop()
 	for {
 		select {
 		case <-l.stop:
 			return
 		case <-t.C:
-			_ = l.reloadIfChanged()
+			_ = l.Reload() // errors are recorded in Status and logged by Reload
 		}
 	}
-}
-
-func (l *Loader) reloadIfChanged() error {
-	info, err := os.Stat(l.path)
-	if err != nil {
-		return err
-	}
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	if !info.ModTime().After(l.lastMod) {
-		return nil
-	}
-	cfg, mod, err := readPolicyFile(l.path)
-	if err != nil {
-		return err
-	}
-	l.current.Store(cfg)
-	l.lastMod = mod
-	return nil
-}
-
-func readPolicyFile(path string) (contracts.PolicyConfig, time.Time, error) {
-	info, err := os.Stat(path)
-	if err != nil {
-		return contracts.PolicyConfig{}, time.Time{}, fmt.Errorf("stat policy: %w", err)
-	}
-	raw, err := os.ReadFile(path)
-	if err != nil {
-		return contracts.PolicyConfig{}, time.Time{}, fmt.Errorf("read policy: %w", err)
-	}
-	var f File
-	if err := yaml.Unmarshal(raw, &f); err != nil {
-		return contracts.PolicyConfig{}, time.Time{}, fmt.Errorf("parse policy: %w", err)
-	}
-	return f.ToConfig(), info.ModTime(), nil
-}
-
-// LoadOnce reads a policy file without starting a watcher.
-func LoadOnce(path string) (contracts.PolicyConfig, error) {
-	cfg, _, err := readPolicyFile(path)
-	return cfg, err
 }

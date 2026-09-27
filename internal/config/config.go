@@ -11,7 +11,7 @@ import (
 // Values are loaded from environment variables (see .env.example).
 type Config struct {
 	Addr              string
-	APIKey            string
+	AgentKeys         string // raw SENTRYGATE_AGENT_KEYS; parse with auth.ParseAgentKeys, never log
 	TemporalHostPort  string
 	TemporalNamespace string
 	TaskQueue         string
@@ -23,25 +23,25 @@ type Config struct {
 	PolicyReloadEvery time.Duration
 }
 
-// LoadFromEnv reads configuration from the process environment.
-// Proxy processes require SENTRYGATE_API_KEY.
+// LoadFromEnv reads proxy configuration. SENTRYGATE_AGENT_KEYS is required.
 func LoadFromEnv() (Config, error) {
 	cfg := baseFromEnv()
-	if cfg.APIKey == "" {
-		return Config{}, fmt.Errorf("SENTRYGATE_API_KEY is required")
+	cfg.AgentKeys = os.Getenv("SENTRYGATE_AGENT_KEYS")
+	if cfg.AgentKeys == "" {
+		return Config{}, fmt.Errorf("SENTRYGATE_AGENT_KEYS is required (format: agent-id:key,agent-id:key)")
 	}
 	return cfg, nil
 }
 
-// LoadFromEnvOptionalAPIKey is used by the worker (no ingress auth).
-func LoadFromEnvOptionalAPIKey() Config {
+// LoadWorkerFromEnv reads worker configuration. The worker does not accept
+// agent traffic and never needs agent keys.
+func LoadWorkerFromEnv() Config {
 	return baseFromEnv()
 }
 
 func baseFromEnv() Config {
 	return Config{
 		Addr:              envOr("SENTRYGATE_ADDR", ":8080"),
-		APIKey:            os.Getenv("SENTRYGATE_API_KEY"),
 		TemporalHostPort:  envOr("TEMPORAL_HOST_PORT", "localhost:7233"),
 		TemporalNamespace: envOr("TEMPORAL_NAMESPACE", "default"),
 		TaskQueue:         envOr("TEMPORAL_TASK_QUEUE", "sentrygate-saga"),

@@ -13,12 +13,13 @@ import (
 	"github.com/battujeevan/SentryGate-AI/internal/audit"
 	"github.com/battujeevan/SentryGate-AI/internal/config"
 	"github.com/battujeevan/SentryGate-AI/internal/logging"
+	"github.com/battujeevan/SentryGate-AI/internal/policy"
 	"github.com/battujeevan/SentryGate-AI/internal/telemetry"
 	"github.com/battujeevan/SentryGate-AI/workflows"
 )
 
 func main() {
-	cfg := config.LoadFromEnvOptionalAPIKey()
+	cfg := config.LoadWorkerFromEnv()
 	log := logging.New("sentrygate-worker")
 
 	ctx := context.Background()
@@ -28,6 +29,15 @@ func main() {
 		os.Exit(1)
 	}
 	defer func() { _ = shutdownTel(context.Background()) }()
+
+	// The worker re-validates every workflow against its own copy of the
+	// policy, so it must start with a valid policy file.
+	policyLoader, err := policy.NewLoader(cfg.PolicyPath, cfg.PolicyReloadEvery, log)
+	if err != nil {
+		log.Error("policy load failed", "path", cfg.PolicyPath, "error", err)
+		os.Exit(1)
+	}
+	defer policyLoader.Close()
 
 	auditStore, err := audit.Open(cfg.AuditDBPath)
 	if err != nil {
@@ -48,17 +58,20 @@ func main() {
 
 	w := worker.New(c, cfg.TaskQueue, worker.Options{})
 	w.RegisterWorkflow(workflows.SentryGateSagaWorkflow)
+	w.RegisterActivity(&workflows.DecisionActivities{Policy: policyLoader, Store: auditStore})
 	w.RegisterActivity(&workflows.InfrastructureActivities{})
 	w.RegisterActivity(&workflows.AuditActivities{Store: auditStore})
 
-	// Lightweight readiness HTTP for container probes.
-	go serveWorkerHealth(cfg.Addr, auditStore, log)
+	go serveWorkerHealth(auditStore, log)
 
+	pol := policyLoader.Current()
 	log.Info("temporal worker started",
 		"queue", cfg.TaskQueue,
 		"host", cfg.TemporalHostPort,
 		"namespace", cfg.TemporalNamespace,
 		"audit_db", cfg.AuditDBPath,
+		"policy_version", pol.Version(),
+		"policy_digest", pol.Digest(),
 	)
 
 	if err := w.Run(worker.InterruptCh()); err != nil {
@@ -67,20 +80,18 @@ func main() {
 	}
 }
 
-func serveWorkerHealth(proxyAddr string, store *audit.Store, log *slog.Logger) {
-	// Worker health binds to :8081 by default to avoid colliding with the proxy.
+func serveWorkerHealth(store *audit.Store, log *slog.Logger) {
 	addr := os.Getenv("SENTRYGATE_WORKER_HEALTH_ADDR")
 	if addr == "" {
 		addr = ":8081"
 	}
-	_ = proxyAddr
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
+	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ok"))
 	})
-	mux.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
 		defer cancel()
 		if err := store.Ping(ctx); err != nil {
@@ -91,8 +102,9 @@ func serveWorkerHealth(proxyAddr string, store *audit.Store, log *slog.Logger) {
 		_, _ = w.Write([]byte("ready"))
 	})
 
+	srv := &http.Server{Addr: addr, Handler: mux, ReadHeaderTimeout: 5 * time.Second}
 	log.Info("worker health listening", "addr", addr)
-	if err := http.ListenAndServe(addr, mux); err != nil {
+	if err := srv.ListenAndServe(); err != nil {
 		log.Error("worker health server failed", "error", err)
 	}
 }

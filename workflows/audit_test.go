@@ -18,7 +18,7 @@ func TestMemoryAuditStore_AppendAndList(t *testing.T) {
 		ProposalID: "prop-9",
 		WorkflowID: "wf-9",
 		RunID:      "run-9",
-		Phase:      contracts.AuditPhaseIngressValidation,
+		Phase:      contracts.AuditPhaseRevalidation,
 		Verdict:    contracts.AuditVerdictPass,
 		TargetID:   "edge-a",
 		Command:    contracts.CmdModifyRouting,
@@ -36,7 +36,7 @@ func TestMemoryAuditStore_AppendAndList(t *testing.T) {
 	if len(rows) != 1 {
 		t.Fatalf("expected 1 row, got %d", len(rows))
 	}
-	if rows[0].Phase != contracts.AuditPhaseIngressValidation {
+	if rows[0].Phase != contracts.AuditPhaseRevalidation {
 		t.Fatalf("unexpected phase %s", rows[0].Phase)
 	}
 }

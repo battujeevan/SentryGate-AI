@@ -8,4 +8,7 @@ bin/
 data/
 .env
 *.db
+*.db-wal
+*.db-shm
 coverage.out
+docs/LINKEDIN_LAUNCH_POST.md

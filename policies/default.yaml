@@ -1,5 +1,45 @@
-# Compliance policy pack — hot-reloaded by the proxy without redeploying workflows.
-max_risk_ceiling: 0.75
+# SentryGate policy. Strictly validated: unknown fields, missing fields and
+# invalid values are rejected. There are no defaults.
+#
+# The proxy and the worker both re-read this file on SENTRYGATE_POLICY_RELOAD and
+# swap it in when its SHA-256 digest changes. An invalid edit is rejected and the
+# last good policy stays active. max_parallel_tasks is applied at startup only.
+#
+# This file contains identities and permissions only. Agent API keys are
+# supplied separately through SENTRYGATE_AGENT_KEYS and never belong here.
+version: "2026-09-27.1"
 max_parallel_tasks: 64
-protected_targets:
-  - ROOT_CORE_EDGE
+
+# Rule applied to otherwise-permitted mutations in each environment:
+# allow | require_approval | deny
+environments:
+  staging: allow
+  production: require_approval
+
+# Command catalogue. Commands not listed here are denied.
+commands:
+  - MODIFY_ROUTING
+  - UPDATE_CERTIFICATE
+  - DELETE_POLICY
+
+# Declared agents and the commands each may issue. Undeclared agents are denied.
+agents:
+  - id: agent-sim
+    commands: [MODIFY_ROUTING, UPDATE_CERTIFICATE, DELETE_POLICY]
+
+# Target registry. Unregistered targets are denied. Protected targets deny
+# every mutation regardless of command or environment.
+targets:
+  - id: ROOT_CORE_EDGE
+    environment: production
+    protected: true
+  - id: prod-payments-edge
+    environment: production
+    protected: false
+  - id: edge-node-west-1
+    environment: staging
+    protected: false
+  # Simulated adapter fails every dispatch to this target (compensation drill).
+  - id: FAILING_NODE
+    environment: staging
+    protected: false

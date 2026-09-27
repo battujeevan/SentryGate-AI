@@ -1,7 +1,8 @@
 package contracts
 
-// CommandType enumerates immutable infrastructure mutation intents
-// accepted from LLM tool-calling nodes.
+// CommandType names an infrastructure mutation an agent can propose. The set
+// of accepted commands is defined by the policy's command catalogue; these
+// constants are the commands used by the shipped policy and the simulator.
 type CommandType string
 
 const (
@@ -10,10 +11,10 @@ const (
 	CmdDeletePolicy  CommandType = "DELETE_POLICY"
 )
 
-// RootCoreEdgeID is the non-bypassable protected target identity.
-// Autonomous agents must never mutate this profile.
+// RootCoreEdgeID is the protected target used by the shipped policy and demos.
+// Protection itself comes from the policy's target registry, not this constant.
 const RootCoreEdgeID = "ROOT_CORE_EDGE"
 
-// FailingNodeID triggers a deterministic non-retryable infrastructure fault
-// used by integration tests and saga compensation drills.
+// FailingNodeID makes the simulated infrastructure adapter fail, which
+// exercises the compensation path in tests and demos.
 const FailingNodeID = "FAILING_NODE"
