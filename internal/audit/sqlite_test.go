@@ -105,6 +105,14 @@ func TestSQLiteStore_DecisionRoundTripAndIdempotency(t *testing.T) {
 	if len(rows) != 2 || !rows[0].Equal(rec) || !rows[1].Equal(second) {
 		t.Fatalf("round trip mismatch: %+v", rows)
 	}
+
+	got, err := store.GetDecision(ctx, rec.DecisionID)
+	if err != nil || !got.Equal(rec) {
+		t.Fatalf("GetDecision = %+v, %v", got, err)
+	}
+	if _, err := store.GetDecision(ctx, "dec_missing"); !errors.Is(err, contracts.ErrDecisionNotFound) {
+		t.Fatalf("GetDecision(missing) err = %v, want ErrDecisionNotFound", err)
+	}
 	if empty, err := store.ListDecisionsByProposal(ctx, "none"); err != nil || empty == nil || len(empty) != 0 {
 		t.Fatalf("expected empty non-nil slice, got %#v err=%v", empty, err)
 	}

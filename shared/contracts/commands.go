@@ -15,6 +15,19 @@ const (
 // Protection itself comes from the policy's target registry, not this constant.
 const RootCoreEdgeID = "ROOT_CORE_EDGE"
 
-// FailingNodeID makes the simulated infrastructure adapter fail, which
-// exercises the compensation path in tests and demos.
-const FailingNodeID = "FAILING_NODE"
+// Targets with fixed behaviour in the simulated infrastructure adapter, used
+// by tests and demos. They have no meaning to a real adapter.
+const (
+	// FailingNodeID: dispatch partly applies and then fails (confirmed
+	// FAILURE with PartiallyApplied), which exercises compensation.
+	FailingNodeID = "FAILING_NODE"
+	// LostResponseNodeID: dispatch applies the change but the response is
+	// lost (UNKNOWN); reconciliation finds it applied (SUCCESS).
+	LostResponseNodeID = "LOST_RESPONSE_NODE"
+	// UnreachableNodeID: the request never reaches the target (UNKNOWN);
+	// reconciliation finds no trace of it (FAILURE).
+	UnreachableNodeID = "UNREACHABLE_NODE"
+	// PartitionedNodeID: neither dispatch nor reconciliation gets an answer
+	// (UNKNOWN, and still UNKNOWN after reconciliation).
+	PartitionedNodeID = "PARTITIONED_NODE"
+)

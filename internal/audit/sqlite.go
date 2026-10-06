@@ -19,10 +19,11 @@ import (
 // other process (proxy and worker share the database file).
 const busyTimeoutMillis = 5000
 
-// Store is a SQLite-backed store for decision records and workflow audit
-// records, shared by the proxy and the worker. Rows are only ever inserted;
-// the code has no update or delete path, but nothing prevents someone with
-// file access from modifying the database.
+// Store is a SQLite-backed store for decision records, workflow audit records
+// and execution claims, shared by the proxy and the worker. Decision and audit
+// rows are only ever inserted. Claim rows change state only through the
+// conditional statements in claims.go. Nothing prevents someone with file
+// access from modifying the database.
 type Store struct {
 	db *sql.DB
 }
@@ -32,7 +33,7 @@ func Open(path string) (*Store, error) {
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return nil, fmt.Errorf("audit db dir: %w", err)
 	}
-	dsn := fmt.Sprintf("%s?_pragma=busy_timeout(%d)&_pragma=journal_mode(WAL)", path, busyTimeoutMillis)
+	dsn := fmt.Sprintf("%s?_pragma=busy_timeout(%d)&_pragma=journal_mode(WAL)&_pragma=foreign_keys(1)", path, busyTimeoutMillis)
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("open sqlite: %w", err)
@@ -80,6 +81,16 @@ CREATE TABLE IF NOT EXISTS decision_records (
   recorded_at    TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_decision_proposal ON decision_records(proposal_id);
+
+CREATE TABLE IF NOT EXISTS execution_claims (
+  decision_id TEXT PRIMARY KEY REFERENCES decision_records(decision_id),
+  workflow_id TEXT NOT NULL,
+  run_id      TEXT NOT NULL,
+  claim_token TEXT NOT NULL,
+  state       TEXT NOT NULL CHECK (state IN ('CLAIMED', 'EXECUTING', 'RECONCILIATION_REQUIRED', 'COMPLETED', 'FAILED', 'RELEASED')),
+  claimed_at  TEXT NOT NULL,
+  updated_at  TEXT NOT NULL
+);
 `
 	_, err := s.db.Exec(ddl)
 	return err
@@ -224,6 +235,20 @@ ON CONFLICT(decision_id) DO NOTHING`,
 const decisionColumns = `decision_id, stage, proposal_id, agent_id, request_hash, command,
        target_id, environment, verdict, reasons, policy_version, policy_digest,
        workflow_id, trace_id, recorded_at`
+
+// GetDecision returns the decision record with the given ID, or
+// contracts.ErrDecisionNotFound.
+func (s *Store) GetDecision(ctx context.Context, decisionID string) (contracts.DecisionRecord, error) {
+	r, err := scanDecision(s.db.QueryRowContext(ctx,
+		`SELECT `+decisionColumns+` FROM decision_records WHERE decision_id = ?`, decisionID))
+	if errors.Is(err, sql.ErrNoRows) {
+		return contracts.DecisionRecord{}, contracts.ErrDecisionNotFound
+	}
+	if err != nil {
+		return contracts.DecisionRecord{}, fmt.Errorf("read decision: %w", err)
+	}
+	return r, nil
+}
 
 // ListDecisionsByProposal returns every decision recorded for a proposal in
 // insertion order.

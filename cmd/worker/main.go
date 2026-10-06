@@ -58,8 +58,8 @@ func main() {
 
 	w := worker.New(c, cfg.TaskQueue, worker.Options{})
 	w.RegisterWorkflow(workflows.SentryGateSagaWorkflow)
-	w.RegisterActivity(&workflows.DecisionActivities{Policy: policyLoader, Store: auditStore})
-	w.RegisterActivity(&workflows.InfrastructureActivities{})
+	w.RegisterActivity(&workflows.DecisionActivities{Policy: policyLoader, Store: auditStore, Claims: auditStore})
+	w.RegisterActivity(&workflows.InfrastructureActivities{Adapter: workflows.NewSimulatedAdapter(), Claims: auditStore})
 	w.RegisterActivity(&workflows.AuditActivities{Store: auditStore})
 
 	go serveWorkerHealth(auditStore, log)

@@ -49,10 +49,14 @@ var scenarios = []scenario{
 		cmd: contracts.CmdModifyRouting, target: "edge-node-west-1", payload: `{"route":"stable"}`,
 		wantStatus: http.StatusOK, wantVerd: contracts.VerdictAllow,
 		wantPhase: contracts.AuditPhaseWorkflowComplete, wantPhaseVerdict: contracts.AuditVerdictPass},
-	{name: "rollback", title: "ALLOW then simulated dispatch failure and compensation",
+	{name: "rollback", title: "ALLOW then simulated partial dispatch failure and compensation",
 		cmd: contracts.CmdUpdateCert, target: contracts.FailingNodeID, payload: `{"cert":"mock"}`,
 		wantStatus: http.StatusOK, wantVerd: contracts.VerdictAllow,
 		wantPhase: contracts.AuditPhaseCompensation, wantPhaseVerdict: contracts.AuditVerdictPass},
+	{name: "unknown-outcome", title: "ALLOW, simulated lost response (UNKNOWN), reconciliation confirms success",
+		cmd: contracts.CmdModifyRouting, target: contracts.LostResponseNodeID, payload: `{"route":"stable"}`,
+		wantStatus: http.StatusOK, wantVerd: contracts.VerdictAllow,
+		wantPhase: contracts.AuditPhaseReconciliation, wantPhaseVerdict: contracts.AuditVerdictPass},
 }
 
 type sim struct {

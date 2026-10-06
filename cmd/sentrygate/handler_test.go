@@ -545,6 +545,53 @@ func TestMethodAndPathValidation(t *testing.T) {
 	}
 }
 
+// The ingress record the handler writes must authorize exactly the workflow it
+// starts, as the worker verifies it, and nothing else.
+func TestIngressRecordAuthorizesOnlyItsOwnWorkflow(t *testing.T) {
+	s := newTestServer(t, nil)
+	rr := s.do(http.MethodPost, "/v1/intercept", keySim,
+		proposalJSON("bind-1", contracts.CmdModifyRouting, "edge-node-west-1", `{"weight":10}`))
+	if rr.Code != http.StatusOK || s.starter.count() != 1 {
+		t.Fatalf("status = %d, started = %d", rr.Code, s.starter.count())
+	}
+	ctx := context.Background()
+	req, workflowID := s.starter.reqs[0], s.starter.opts[0].ID
+
+	if err := decision.CheckIngress(ctx, s.store, req, workflowID); err != nil {
+		t.Fatalf("handler's own execution does not verify: %v", err)
+	}
+
+	otherAgent := req
+	otherAgent.AgentID = "limited"
+	if err := decision.CheckIngress(ctx, s.store, otherAgent, workflowID); !errors.Is(err, decision.ErrIngressAgentMismatch) {
+		t.Fatalf("other agent: err = %v", err)
+	}
+	if err := decision.CheckIngress(ctx, s.store, req, "saga-other"); !errors.Is(err, decision.ErrIngressIdentityMismatch) {
+		t.Fatalf("other workflow: err = %v", err)
+	}
+
+	// A denied proposal starts no workflow; its record cannot authorize one.
+	s.do(http.MethodPost, "/v1/intercept", keySim,
+		proposalJSON("bind-deny", contracts.CmdDeletePolicy, contracts.RootCoreEdgeID, `{}`))
+	var denied contracts.DecisionRecord
+	for _, r := range s.records(t) {
+		if r.ProposalID == "bind-deny" {
+			denied = r
+		}
+	}
+	forged := contracts.ExecutionRequest{
+		AgentID: "agent-sim",
+		Proposal: contracts.AgentProposal{
+			ID: "bind-deny", Type: contracts.CmdDeletePolicy, TargetID: contracts.RootCoreEdgeID, Payload: `{}`,
+		},
+		IngressDecisionID: denied.DecisionID,
+		RequestHash:       denied.RequestHash,
+	}
+	if err := decision.CheckIngress(ctx, s.store, forged, "saga-bind-deny"); !errors.Is(err, decision.ErrIngressNotAllowed) {
+		t.Fatalf("denied record: err = %v", err)
+	}
+}
+
 func TestPolicyEndpointReturnsMetadataOnly(t *testing.T) {
 	s := newTestServer(t, nil)
 	rr := s.do(http.MethodGet, "/v1/policy", keySim, "")
