@@ -39,7 +39,13 @@ targets:
   - id: edge-node-west-1
     environment: staging
     protected: false
-  # Simulated adapter fails every dispatch to this target (compensation drill).
+  # Simulated adapter partly applies and then fails every dispatch to this
+  # target (compensation drill).
   - id: FAILING_NODE
+    environment: staging
+    protected: false
+  # Simulated adapter applies the change but loses the response, so the outcome
+  # is UNKNOWN until reconciliation confirms it (reconciliation drill).
+  - id: LOST_RESPONSE_NODE
     environment: staging
     protected: false

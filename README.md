@@ -10,9 +10,9 @@ An agent submits a proposed change (command, target, payload) over HTTP. SentryG
 
 | | |
 |---|---|
-| **Implemented** | Per-agent API keys resolved to an agent identity. Strict JSON ingress (unknown fields such as `risk_score` are rejected). Deterministic policy evaluation with `ALLOW` / `DENY` / `REQUIRE_APPROVAL` verdicts and stable reason codes. Strictly validated policy file with SHA-256 digest and digest-based hot reload that keeps the last good policy. A decision record for each evaluated, well-formed request, written before any workflow starts. There are two exceptions. A request cancelled before evaluation gets `503` and no record. If the record write fails, the failure is logged and nothing executes (see [SECURITY.md](SECURITY.md)). Canonical request hash. Workflow re-validation before any side effect. SQLite storage in WAL mode. |
-| **Simulated** | The infrastructure adapter: dispatch prints and succeeds (or fails for `FAILING_NODE`), and compensation prints. The F5 / Zscaler clients in `proxy/clients.go` are in-memory test doubles and are not wired to the workflow. |
-| **Planned** | An approval workflow for `REQUIRE_APPROVAL` (today it is only a verdict; nothing is executed). Idempotent dispatch, pre-image based compensation, per-target serialization and tamper-evident records. |
+| **Implemented** | Per-agent API keys resolved to an agent identity. Strict JSON ingress (unknown fields such as `risk_score` are rejected). Deterministic policy evaluation with `ALLOW` / `DENY` / `REQUIRE_APPROVAL` verdicts and stable reason codes. Strictly validated policy file with SHA-256 digest and digest-based hot reload that keeps the last good policy. A decision record for each evaluated, well-formed request, written before any workflow starts. There are two exceptions. A request cancelled before evaluation gets `503` and no record. If the record write fails, the failure is logged and nothing executes (see [SECURITY.md](SECURITY.md)). Canonical request hash. Before any side effect, the workflow requires a matching recorded ingress `ALLOW`, atomically claims it so that it authorizes at most one execution, and re-validates against the current policy. Explicit dispatch outcomes (`SUCCESS` / `FAILURE` / `UNKNOWN`): an unknown outcome, including a timeout, is never treated as failure. It keeps the claim, is never re-dispatched or compensated, and is reconciled through the adapter with a stable per-decision idempotency key. SQLite storage in WAL mode. |
+| **Simulated** | The only infrastructure adapter. It changes nothing; it prints, and answers dispatch and reconciliation deterministically per target (success by default; partial failure, lost response, unreachable and partitioned targets for testing). It honours idempotency keys in process memory only. The F5 / Zscaler clients in `proxy/clients.go` are in-memory test doubles and are not wired to the workflow. |
+| **Planned** | An approval workflow for `REQUIRE_APPROVAL` (today it is only a verdict; nothing is executed). A real adapter that reconciles against a target, resolution of outcomes still unknown after the reconciliation window, pre-image based compensation, per-target serialization and tamper-evident records. |
 | **Out of scope** | Judging whether a change is wise, prompt-injection defense, real vendor credentials, multi-node deployment, UI. |
 
 ## How a request is decided
@@ -30,10 +30,19 @@ Agent ──X-API-Key──► auth (key → agent ID)
                       │ ALLOW (only if the record was written, else 503)
                       ▼
             Temporal workflow (409 "not_executed" if one is already running for this ID)
-              1. re-evaluate against the worker's current policy
-                 non-ALLOW → record + REVALIDATION_DENIED, nothing dispatched
-              2. simulated dispatch → compensation on failure
-              3. audit rows per phase
+              1. verify the recorded ingress ALLOW (agent, request hash, proposal, workflow ID)
+                 missing/mismatched → record + INGRESS_DECISION_INVALID, nothing dispatched
+              2. claim the ingress decision (at most one execution per decision)
+                 already claimed → record + EXECUTION_CLAIM_REJECTED, nothing dispatched
+              3. re-evaluate against the worker's current policy
+                 non-ALLOW → record + REVALIDATION_DENIED, claim released, nothing dispatched
+              4. dispatch activity: fence CLAIMED → EXECUTING as this run, then simulated dispatch once
+                 (idempotency key from the decision); fence not acquired → adapter not called
+                 SUCCESS → COMPLETED
+                 FAILURE → FAILED (+ compensation only if partly applied)
+                 UNKNOWN / timeout → RECONCILIATION_REQUIRED, reconcile (never re-dispatch)
+                   → COMPLETED / FAILED, or still unknown: DISPATCH_OUTCOME_UNKNOWN
+              5. audit rows per phase
 ```
 
 Checks run in a fixed order and every applicable deny reason is reported:
@@ -69,7 +78,8 @@ This starts Temporal, the worker and the proxy (all ports bound to `127.0.0.1`),
 | `unregistered-target` | `MODIFY_ROUTING` on `shadow-edge-9` | `403` `DENY` `TARGET_UNREGISTERED` |
 | `approval-required` | `UPDATE_CERTIFICATE` on `prod-payments-edge` | `403` `REQUIRE_APPROVAL`, not executed |
 | `allowed` | `MODIFY_ROUTING` on `edge-node-west-1` | `200` `ALLOW`, workflow completes |
-| `rollback` | `UPDATE_CERTIFICATE` on `FAILING_NODE` | `200` `ALLOW`, simulated dispatch fails, compensation runs |
+| `rollback` | `UPDATE_CERTIFICATE` on `FAILING_NODE` | `200` `ALLOW`, simulated dispatch partly applies and fails, compensation runs |
+| `unknown-outcome` | `MODIFY_ROUTING` on `LOST_RESPONSE_NODE` | `200` `ALLOW`, simulated response lost (`UNKNOWN`), reconciliation confirms success, workflow completes |
 
 `go run ./cmd/agent-sim -check all` runs the same scenarios and exits non-zero if any status, verdict, decision record or workflow outcome differs from the table. CI runs this against the Compose stack.
 
@@ -138,7 +148,7 @@ make race    # go test -race ./... (needs a C toolchain; runs in CI)
 make bench
 ```
 
-The tests cover authentication and identity, every decision rule, decision records (identity, policy version and digest, request hash), write-failure behaviour, HTTP hardening, policy reload edge cases, and workflow re-validation for direct Temporal submissions and policy tightened between ingress and execution.
+The tests cover authentication and identity, every decision rule, decision records (identity, policy version and digest, request hash), write-failure behaviour, HTTP hardening, policy reload edge cases, ingress-decision verification for direct Temporal submissions (missing, forged, denied, wrong-stage, other-agent, altered-content and other-workflow decisions never dispatch), the execution claim (a decision executed twice, sequentially or concurrently, dispatches once; claim-store failures, lost responses, release and cancellation), dispatch outcomes (timeouts and other ambiguous results become `UNKNOWN`, keep the claim and are never re-dispatched or compensated; reconciliation to success, failure or still unknown; a stable idempotency key; repeated reconciliation applies nothing twice), and workflow re-validation when the policy is tightened between ingress and execution.
 
 Policy evaluation benchmark, from a single local run (Windows, Go 1.27, i5-13420H; indicative only):
 
@@ -152,11 +162,12 @@ This measures evaluation only, not HTTP, SQLite or Temporal.
 ## Limitations
 
 - **SentryGate only gates what is routed through it.** An agent that holds infrastructure credentials can bypass it entirely. The agent must have no direct access.
-- **Temporal, its database, the worker and the audit volume are trusted.** Temporal is unauthenticated in the Compose stack. Anyone who can start workflows on the task queue can claim any agent ID. Re-validation still enforces the policy, but not the identity.
+- **Temporal, its database, the worker and the audit volume are trusted.** Temporal is unauthenticated in the Compose stack. A workflow started there dispatches only if it matches a recorded ingress `ALLOW` that no other execution has claimed. Anyone who can write the database can still forge a record or reset a claim.
 - **No semantic judgment.** A permitted command on a permitted target is allowed even if the payload is a bad idea.
 - **No prompt-injection defense.** An injected agent issuing a permitted command is indistinguishable from a legitimate one.
 - **Single node.** SQLite, with no HA. `max_parallel_tasks` is applied at startup only.
-- **Simulated adapter.** Nothing touches real infrastructure. Compensation is best effort, runs once, and is not idempotent.
+- **Simulated adapter.** Nothing touches real infrastructure, and reconciliation only asks the simulator, whose record of keys is in memory: it is lost on worker restart and not shared between workers. Compensation is best effort, runs once, and is not idempotent.
+- **Unresolved outcomes need an operator.** If reconciliation still has no answer after 24 hours, or the workflow is cancelled while reconciling, the claim stays `RECONCILIATION_REQUIRED`. The decision cannot run again, and nothing yet resolves the claim or exposes it through the API.
 - **Approval is a verdict, not a workflow.** `REQUIRE_APPROVAL` requests are recorded and refused; there is no way to approve them yet.
 - Records are append-only in code but not tamper-evident. Anyone with access to the database file can modify them.
 
@@ -171,7 +182,7 @@ internal/decision  Evaluation, request hash, decision store interface
 internal/auth      Agent keyring and middleware
 internal/audit     SQLite store (decisions + workflow audit)
 proxy/             Throttled evaluator; simulated F5/Zscaler clients (tests only)
-workflows/         Re-validation, simulated dispatch and compensation, audit
+workflows/         Re-validation, adapter contract, simulated adapter, reconciliation, audit
 shared/contracts   Wire and record types
 policies/          Policy file
 ```

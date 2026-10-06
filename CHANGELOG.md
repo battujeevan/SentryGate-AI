@@ -16,6 +16,25 @@
 - Decision records (SQLite `decision_records`) for each evaluated, well-formed request, written before any workflow starts. The exceptions are requests cancelled before evaluation and failed writes. `GET /v1/decisions/{proposal_id}`.
 - Canonical SHA-256 request hash.
 - Workflow re-validation against the worker's current policy before any side effect. Non-`ALLOW` fails with non-retryable `REVALIDATION_DENIED`.
+- Ingress decision binding. Before re-validation, the workflow requires `ingress_decision_id` to name a recorded `INGRESS`-stage `ALLOW` with the same agent ID, recomputed request hash, proposal ID and workflow ID. Otherwise it records a `DENY` with an `INGRESS_DECISION_*` reason and fails with non-retryable `INGRESS_DECISION_INVALID`. This also applies when the record cannot be read. Previously the ID was carried but never checked, so a workflow started directly in Temporal with a fabricated ID could dispatch. Workflows started before this change will fail replay on an upgraded worker.
+- Execution claims (SQLite `execution_claims`). The workflow atomically claims its ingress decision after verifying it, marks the claim `EXECUTING` before dispatch, and `COMPLETED` or `FAILED` after. A decision claimed by another run fails with non-retryable `EXECUTION_CLAIM_REJECTED` (`INGRESS_DECISION_ALREADY_CLAIMED`) without dispatching, so one ingress decision authorizes at most one dispatch, including after its workflow has closed and under concurrent starts. Claims are released on every exit before dispatch. Previously a closed workflow's input could be started again and would dispatch again. The SQLite connection now enforces foreign keys.
+- Explicit dispatch outcomes and reconciliation.
+  - Dispatch now reports `SUCCESS`, `FAILURE` or `UNKNOWN` through the `workflows.Adapter` contract. Any dispatch activity error (timeout, cancellation, lost worker) or unrecognised status is `UNKNOWN`, never `FAILED`.
+  - New claim state `RECONCILIATION_REQUIRED`, entered from `EXECUTING` on `UNKNOWN`. It is never released or claimed again and moves to `COMPLETED` or `FAILED` once reconciliation confirms an outcome.
+  - The owning run reconciles with backoff for up to 24 hours and never re-dispatches. If the outcome is still unknown, it fails with non-retryable `DISPATCH_OUTCOME_UNKNOWN` and leaves the claim unresolved.
+  - Every dispatch and reconciliation carries an idempotency key derived only from the ingress decision.
+  - Compensation runs only on a confirmed `FAILURE` with `partially_applied`, not on `UNKNOWN` and not on a plain `FAILURE`.
+  - Confirmed failures now fail the workflow with non-retryable `DISPATCH_FAILED`.
+  - New audit phase `DISPATCH_RECONCILIATION` and audit verdict `UNKNOWN`.
+  - The simulated adapter is now deterministic per target, with new targets `LOST_RESPONSE_NODE`, `UNREACHABLE_NODE` and `PARTITIONED_NODE`.
+    - Previously, any dispatch error marked the claim `FAILED` and ran compensation, even when the change might have been applied.
+- Execution fence inside the dispatch activity.
+  - The `CLAIMED` → `EXECUTING` transition now happens in `DispatchConfig`, immediately before the adapter call, for the owner built from the activity's own Temporal info. The adapter is called only if that compare-and-set succeeds. The workflow no longer writes `EXECUTING`, and `AdvanceExecutionClaim` refuses it.
+  - `EXECUTING` can be entered only from `CLAIMED`; the same-owner `EXECUTING` → `EXECUTING` retry has been removed.
+  - A failed fence returns non-retryable `EXECUTION_FENCE_REJECTED` or `EXECUTION_FENCE_UNKNOWN` without calling the adapter. The workflow releases the claim if it is still `CLAIMED` and fails with `EXECUTION_CLAIM_REJECTED`; if the fence may have committed, it treats the outcome as `UNKNOWN` and reconciles.
+  - New audit phase `EXECUTION_FENCE`, written only when the fence was not acquired.
+  - Previously, `EXECUTING` was written by a workflow activity before `DispatchConfig` was scheduled, and the dispatch activity did not check the claim. A run created by a Temporal reset after that point replayed the earlier result and could call the adapter again.
+  - `DispatchConfig` now takes `contracts.FencedDispatch`, and the workflow's event history has changed. Workflows started before this change will fail replay on an upgraded worker.
 - HTTP hardening:
   - 64 KiB body limit (`413`).
   - Single JSON object only, with trailing data rejected.
@@ -23,7 +42,7 @@
   - Generic `502` / `500` bodies.
   - `409 not_executed` when a workflow for the proposal ID is already running, instead of reporting the running execution as accepted.
   - Server read (30s) and idle (120s) timeouts in addition to the 5s header timeout.
-- `agent-sim` scenarios for each rule and a `-check` mode.
+- `agent-sim` scenarios for each rule, an unknown-outcome reconciliation scenario, and a `-check` mode.
 - CI: `go test -race` and a Docker Compose smoke job that runs `agent-sim -check`.
 - Makefile targets `race` and `check`.
 

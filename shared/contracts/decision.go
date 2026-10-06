@@ -30,6 +30,18 @@ const (
 	ReasonEnvironmentAllowed  ReasonCode = "ENVIRONMENT_ALLOWED"
 	ReasonPolicyUnavailable   ReasonCode = "POLICY_UNAVAILABLE"
 	ReasonRequestHashMismatch ReasonCode = "REQUEST_HASH_MISMATCH"
+
+	// Workflow-stage reasons: the execution is not backed by a valid recorded
+	// ingress ALLOW decision.
+	ReasonIngressDecisionNotFound   ReasonCode = "INGRESS_DECISION_NOT_FOUND"
+	ReasonIngressDecisionWrongStage ReasonCode = "INGRESS_DECISION_WRONG_STAGE"
+	ReasonIngressDecisionNotAllow   ReasonCode = "INGRESS_DECISION_NOT_ALLOW"
+	ReasonIngressAgentMismatch      ReasonCode = "INGRESS_DECISION_AGENT_MISMATCH"
+	ReasonIngressHashMismatch       ReasonCode = "INGRESS_DECISION_HASH_MISMATCH"
+	ReasonIngressIdentityMismatch   ReasonCode = "INGRESS_DECISION_IDENTITY_MISMATCH"
+
+	// The ingress decision is valid but another execution has claimed it.
+	ReasonIngressDecisionAlreadyClaimed ReasonCode = "INGRESS_DECISION_ALREADY_CLAIMED"
 )
 
 // DecisionStage identifies where a decision was made.
@@ -75,6 +87,9 @@ var ErrInvalidDecisionRecord = errors.New("decision record is missing required f
 // ErrDecisionConflict is returned when a decision ID is reused with different content.
 var ErrDecisionConflict = errors.New("decision record conflicts with an existing record")
 
+// ErrDecisionNotFound is returned when no record exists for a decision ID.
+var ErrDecisionNotFound = errors.New("decision record not found")
+
 // Validate checks that the fields every record must carry are present.
 func (r DecisionRecord) Validate() error {
 	if r.DecisionID == "" || r.Stage == "" || r.ProposalID == "" ||
@@ -115,3 +130,17 @@ type ExecutionRequest struct {
 // RevalidationDeniedErrorType is the Temporal application error type returned
 // when workflow re-validation does not produce ALLOW.
 const RevalidationDeniedErrorType = "REVALIDATION_DENIED"
+
+// IngressDecisionInvalidErrorType is the Temporal application error type
+// returned when an execution is not backed by a valid recorded ingress ALLOW,
+// or when that cannot be verified. When a specific reason is known, the error's
+// details carry it as a ReasonCode.
+const IngressDecisionInvalidErrorType = "INGRESS_DECISION_INVALID"
+
+// IngressVerification is the result of checking an execution request against
+// its recorded ingress decision. The zero value is not valid.
+type IngressVerification struct {
+	Valid  bool       `json:"valid"`
+	Reason ReasonCode `json:"reason,omitempty"`
+	Detail string     `json:"detail,omitempty"`
+}

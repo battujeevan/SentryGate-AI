@@ -19,6 +19,9 @@ SentryGate is a portfolio / reference project. It has not been independently aud
   - Server timeouts: 5s to read headers, 30s to read the whole request (which also bounds handler work), and 120s for idle keep-alive connections.
 - **Deterministic authorization.** Declared agents, per-agent command permissions, a command catalogue, a target registry, protected targets (all mutations denied) and per-environment rules. Anything not declared is denied.
 - **Decision evidence.** Each evaluated, well-formed request produces a decision record with identity, request hash, verdict, reasons and the policy version and digest. There are two exceptions. A request cancelled before evaluation gets `503` and no record. If the record write fails, the failure is logged, a `DENY` or `REQUIRE_APPROVAL` is still refused, and an `ALLOW` is not executed (`503`).
+- **Ingress decision binding.** Before any side effect, the workflow loads the ingress decision named in its input and refuses (`INGRESS_DECISION_INVALID`) unless it is a recorded `INGRESS`-stage `ALLOW` for the same agent ID, the same recomputed request hash, the same proposal ID and the running workflow's ID. A workflow started directly in Temporal without such a record does not dispatch.
+- **One execution per ingress decision.** The workflow atomically claims its ingress decision before re-validation. The dispatch activity calls the adapter only after it has moved the claim from `CLAIMED` to `EXECUTING` as its own run, using the workflow and run IDs from Temporal's activity info; if that fence fails, the adapter is not called. A run created by a Temporal reset has a new run ID, so it cannot pass the fence for a claim held by the original run. A decision that another run has claimed, executed or failed is refused with `EXECUTION_CLAIM_REJECTED` (`INGRESS_DECISION_ALREADY_CLAIMED`), whether the second run starts after the first has finished or at the same time. A claim is released only if nothing was dispatched. See [ARCHITECTURE.md](ARCHITECTURE.md#execution-claims) for the state machine.
+- **Unknown outcomes are not failures.** Dispatch is scheduled once and never retried. A timeout, cancellation, lost worker or unrecognised adapter status is recorded as `UNKNOWN`, not `FAILED`. The claim moves to `RECONCILIATION_REQUIRED`, which is never released or claimed again, and the workflow only reconciles, with the same decision-derived idempotency key. It does not dispatch again or compensate. Compensation runs only when the adapter confirms that the change partly took effect. See [ARCHITECTURE.md](ARCHITECTURE.md#dispatch-outcomes-and-reconciliation).
 - **Re-validation.** The workflow re-evaluates each proposal against the worker's current policy before any side effect and refuses on anything but `ALLOW`.
 - **Policy integrity.** Strict schema; the digest is logged and exposed. An invalid reload never replaces the active policy.
 - **Container hygiene.** Distroless nonroot images; Compose binds all ports to `127.0.0.1`.
@@ -27,9 +30,9 @@ SentryGate is a portfolio / reference project. It has not been independently aud
 
 These components must be trusted, and their compromise defeats SentryGate:
 
-- **Temporal and its database.** Temporal is unauthenticated in the Compose stack. Anyone who can start workflows on the task queue can claim any agent ID. Re-validation still enforces the policy for the claimed identity, but it cannot verify the identity.
+- **Temporal and its database.** Temporal is unauthenticated in the Compose stack. Anyone who can start workflows on the task queue can submit any input, but the workflow dispatches only for an input that matches a recorded ingress `ALLOW` that has not already been claimed. Such a caller can still terminate or reset workflows. Terminating a run that holds a claim before dispatch leaves that decision unusable (nothing is dispatched; the change must be resubmitted).
 - **The worker.** It holds the policy and executes activities.
-- **The shared audit volume.** Records are append-only in code, but anyone with file access can modify or delete them. They are not tamper-evident.
+- **The shared audit volume.** Records are append-only in code, but anyone with file access can modify or delete them. They are not tamper-evident. Anyone who can write the database can also insert an ingress `ALLOW` that the workflow will accept, or reset an execution claim.
 - **The policy file and the environment providing `SENTRYGATE_AGENT_KEYS`.**
 
 ## Known limitations (do not assume otherwise)
@@ -38,7 +41,8 @@ These components must be trusted, and their compromise defeats SentryGate:
 - No semantic judgment: permitted commands on permitted targets are allowed regardless of payload content.
 - No prompt-injection defense.
 - `REQUIRE_APPROVAL` is a verdict only; there is no approval workflow yet.
-- The infrastructure adapter is simulated. Compensation is best effort and not idempotent.
+- The infrastructure adapter is simulated, so reconciliation asks only the simulator, not a real target. Compensation is best effort and not idempotent.
+- An outcome still unknown after the 24-hour reconciliation window leaves the claim in `RECONCILIATION_REQUIRED` with no automated or API path to resolve it.
 - Single node; no TLS termination; no rate limiting beyond a startup-sized evaluation pool; no key rotation without restart.
 - The audit database is not encrypted at rest.
 - Record reads are not scoped per agent. Any authenticated agent can read the decision and audit records of any proposal ID through `GET /v1/decisions/{id}` and `GET /v1/audit/{id}`, including proposals submitted by other agents.
