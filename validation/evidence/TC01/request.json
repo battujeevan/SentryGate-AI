@@ -1,0 +1,76 @@
+{
+  "note": "API keys are never recorded. path=gateway is POST /v1/intercept; path=execution-boundary is direct Temporal access.",
+  "requests": [
+    {
+      "label": "agent-a read_customer(customer-123)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "proposal": {
+        "id": "TC01-084148-read",
+        "type": "READ_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{}"
+      },
+      "workflow_id": "saga-TC01-084148-read",
+      "run_id": "01a11060-4b5a-779e-a136-389d32a910b8",
+      "sent_at": "2026-10-06T08:41:48.6316293Z",
+      "http_status": 200,
+      "response": {
+        "status": "accepted",
+        "verdict": "ALLOW",
+        "reasons": [
+          "ENVIRONMENT_ALLOWED"
+        ],
+        "decision_id": "dec_3374BWA7WJCZRCOQ4K24Z3PGBF",
+        "proposal_id": "TC01-084148-read",
+        "workflow_id": "saga-TC01-084148-read",
+        "run_id": "01a11060-4b5a-779e-a136-389d32a910b8"
+      },
+      "workflow_outcome": {
+        "workflow_id": "saga-TC01-084148-read",
+        "run_id": "01a11060-4b5a-779e-a136-389d32a910b8",
+        "status": "COMPLETED"
+      },
+      "sentrygate_outcome": "EXECUTED",
+      "sentrygate_detail": "workflow completed"
+    },
+    {
+      "label": "agent-a update_customer(customer-123, email)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "proposal": {
+        "id": "TC01-084148-update",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{\"email\":\"ada.lovelace@example.test\"}"
+      },
+      "workflow_id": "saga-TC01-084148-update",
+      "run_id": "01a11060-4ba1-7860-92fb-5f14c75a4fdf",
+      "sent_at": "2026-10-06T08:41:48.7033542Z",
+      "http_status": 200,
+      "response": {
+        "status": "accepted",
+        "verdict": "ALLOW",
+        "reasons": [
+          "ENVIRONMENT_ALLOWED"
+        ],
+        "decision_id": "dec_BZKGHFGADMCI6AIULBBYT7HL22",
+        "proposal_id": "TC01-084148-update",
+        "workflow_id": "saga-TC01-084148-update",
+        "run_id": "01a11060-4ba1-7860-92fb-5f14c75a4fdf"
+      },
+      "workflow_outcome": {
+        "workflow_id": "saga-TC01-084148-update",
+        "run_id": "01a11060-4ba1-7860-92fb-5f14c75a4fdf",
+        "status": "COMPLETED"
+      },
+      "sentrygate_outcome": "EXECUTED",
+      "sentrygate_detail": "workflow completed"
+    }
+  ],
+  "test_id": "TC01"
+}

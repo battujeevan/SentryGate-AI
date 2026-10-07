@@ -1,0 +1,183 @@
+{
+  "test_id": "TC01",
+  "test_name": "Legitimate tool calls",
+  "kind": "legitimate",
+  "objective": "Establish the baseline: an authorized agent's read and update reach the MCP server exactly once each, with the authorized identity, tool, target and arguments.",
+  "method": [
+    "agent-a sends read_customer(customer-123) through ingress.",
+    "agent-a sends update_customer(customer-123, email) through ingress.",
+    "Wait for both workflows; compare the MCP server's execution records with the ingress decisions."
+  ],
+  "expected": "Both allowed and executed once; one mutation (the update); the MCP server records agent-a, the authorized target and SentryGate's request hash.",
+  "status": "VERIFIED",
+  "f5_result": "NOT_TESTED",
+  "f5_provider": "mock (no F5 in path)",
+  "f5_observation_source": "MOCK",
+  "sentrygate_result": "EXECUTED",
+  "infrastructure_result": "MUTATED",
+  "mutation_count": 1,
+  "expected_mutation_count": 1,
+  "tool_invocations": 2,
+  "checks": [
+    {
+      "name": "read_customer invocations",
+      "expected": "1",
+      "observed": "1",
+      "result": "PASS"
+    },
+    {
+      "name": "update_customer invocations",
+      "expected": "1",
+      "observed": "1",
+      "result": "PASS"
+    },
+    {
+      "name": "customer-123 email after update",
+      "expected": "ada.lovelace@example.test",
+      "observed": "ada.lovelace@example.test",
+      "result": "PASS"
+    },
+    {
+      "name": "MCP execution agent for agent-a read_customer(customer-123)",
+      "expected": "agent-a",
+      "observed": "agent-a",
+      "result": "PASS"
+    },
+    {
+      "name": "MCP execution target for agent-a read_customer(customer-123)",
+      "expected": "customer-123",
+      "observed": "customer-123",
+      "result": "PASS"
+    },
+    {
+      "name": "MCP execution carries SentryGate request hash for agent-a read_customer(customer-123)",
+      "expected": "0cfd35e2f42fdf8b3b4f43a770130a2a1a0f762feb6055847c43c578c61c3ff9",
+      "observed": "0cfd35e2f42fdf8b3b4f43a770130a2a1a0f762feb6055847c43c578c61c3ff9",
+      "result": "PASS"
+    },
+    {
+      "name": "MCP execution idempotency key for agent-a read_customer(customer-123)",
+      "expected": "sentrygate.exec.v1:dec_3374BWA7WJCZRCOQ4K24Z3PGBF",
+      "observed": "sentrygate.exec.v1:dec_3374BWA7WJCZRCOQ4K24Z3PGBF",
+      "result": "PASS"
+    },
+    {
+      "name": "execution claim on agent-a read_customer(customer-123)",
+      "expected": "COMPLETED",
+      "observed": "COMPLETED",
+      "result": "PASS"
+    },
+    {
+      "name": "MCP execution agent for agent-a update_customer(customer-123, email)",
+      "expected": "agent-a",
+      "observed": "agent-a",
+      "result": "PASS"
+    },
+    {
+      "name": "MCP execution target for agent-a update_customer(customer-123, email)",
+      "expected": "customer-123",
+      "observed": "customer-123",
+      "result": "PASS"
+    },
+    {
+      "name": "MCP execution carries SentryGate request hash for agent-a update_customer(customer-123, email)",
+      "expected": "20e6b40452708819778ea7d85a1fc72e54b0bbc62d6da508cf4d9d83d25fcac3",
+      "observed": "20e6b40452708819778ea7d85a1fc72e54b0bbc62d6da508cf4d9d83d25fcac3",
+      "result": "PASS"
+    },
+    {
+      "name": "MCP execution idempotency key for agent-a update_customer(customer-123, email)",
+      "expected": "sentrygate.exec.v1:dec_BZKGHFGADMCI6AIULBBYT7HL22",
+      "observed": "sentrygate.exec.v1:dec_BZKGHFGADMCI6AIULBBYT7HL22",
+      "result": "PASS"
+    },
+    {
+      "name": "execution claim on agent-a update_customer(customer-123, email)",
+      "expected": "COMPLETED",
+      "observed": "COMPLETED",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: agent-a read_customer(customer-123)",
+      "expected": "EXECUTED",
+      "observed": "EXECUTED workflow completed",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: agent-a update_customer(customer-123, email)",
+      "expected": "EXECUTED",
+      "observed": "EXECUTED workflow completed",
+      "result": "PASS"
+    },
+    {
+      "name": "infrastructure mutation count (test MCP server database)",
+      "expected": "1",
+      "observed": "1",
+      "result": "PASS"
+    },
+    {
+      "name": "no idempotency key mutated the target more than once",
+      "expected": "none",
+      "observed": "none",
+      "result": "PASS"
+    }
+  ],
+  "attempts": [
+    {
+      "label": "agent-a read_customer(customer-123)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "tool": "read_customer",
+      "target": "customer-123",
+      "sentrygate_outcome": "EXECUTED",
+      "sentrygate_detail": "workflow completed",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    },
+    {
+      "label": "agent-a update_customer(customer-123, email)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "sentrygate_outcome": "EXECUTED",
+      "sentrygate_detail": "workflow completed",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    }
+  ],
+  "notes": [
+    "F5 result NOT_TESTED: no F5 component was in the request path; the F5 observation provider was \"mock (no F5 in path)\" and returned placeholders only."
+  ],
+  "limitations": [],
+  "environment": {
+    "arch": "amd64",
+    "go_version": "go1.27.0",
+    "ingress_path": "test agent -> SentryGate proxy (direct, no gateway)",
+    "mcp_server": "validation/cmd/mcp-test-server (disposable SQLite database per test)",
+    "os": "windows",
+    "sentrygate_worker_adapter": "mcp (workflows.MCPAdapter, SENTRYGATE_ADAPTER=mcp)",
+    "source_revision": "a2fa280747b81037ca4769997b3c86999b9421b8 (with uncommitted changes)",
+    "temporal_mode": "Temporal CLI dev server (server start-dev, in-memory), started by the harness",
+    "temporal_version": "temporal version 1.9.1 (Server 1.32.0, UI 2.54.1)",
+    "worker_mcp_path": "SentryGate worker -> test MCP server (direct, no gateway)"
+  },
+  "started_at": "2026-10-06T08:41:48Z",
+  "finished_at": "2026-10-06T08:41:49Z",
+  "evidence_path": "validation/evidence/TC01",
+  "files": [
+    "after-state.json",
+    "authorization.json",
+    "before-state.json",
+    "execution-count.json",
+    "execution.json",
+    "infrastructure-state.json",
+    "request.json",
+    "sentrygate-decision.json",
+    "test-result.json"
+  ]
+}

@@ -1,0 +1,295 @@
+{
+  "f5_observation_source": "MOCK",
+  "f5_observations": [
+    {
+      "request_label": "concurrent identical request 1",
+      "role": "attack",
+      "correlation": {
+        "test_id": "TC07",
+        "request_label": "concurrent identical request 1",
+        "proposal_id": "TC07-084155-update",
+        "agent_id": "agent-a",
+        "tool": "update_customer",
+        "target": "customer-123",
+        "sent_at": "2026-10-06T08:41:56.083942Z"
+      },
+      "observation": {
+        "source": "MOCK",
+        "provider": "mock (no F5 in path)",
+        "request_id": "MOCK",
+        "agent_identity": "MOCK",
+        "tool": "MOCK",
+        "target": "MOCK",
+        "authorization_decision": "NOT_OBSERVED",
+        "policy_identifier": "MOCK",
+        "timestamp": "MOCK",
+        "audit_event": "MOCK",
+        "downstream_request_reference": "MOCK",
+        "raw_evidence_reference": "MOCK",
+        "mocked_fields": [
+          "request_id",
+          "agent_identity",
+          "tool",
+          "target",
+          "authorization_decision",
+          "policy_identifier",
+          "timestamp",
+          "audit_event",
+          "downstream_request_reference",
+          "raw_evidence_reference"
+        ],
+        "note": "No F5 component was in the request path. This is a placeholder, not an F5 observation."
+      }
+    },
+    {
+      "request_label": "concurrent identical request 2",
+      "role": "attack",
+      "correlation": {
+        "test_id": "TC07",
+        "request_label": "concurrent identical request 2",
+        "proposal_id": "TC07-084155-update",
+        "agent_id": "agent-a",
+        "tool": "update_customer",
+        "target": "customer-123",
+        "sent_at": "2026-10-06T08:41:56.083942Z"
+      },
+      "observation": {
+        "source": "MOCK",
+        "provider": "mock (no F5 in path)",
+        "request_id": "MOCK",
+        "agent_identity": "MOCK",
+        "tool": "MOCK",
+        "target": "MOCK",
+        "authorization_decision": "NOT_OBSERVED",
+        "policy_identifier": "MOCK",
+        "timestamp": "MOCK",
+        "audit_event": "MOCK",
+        "downstream_request_reference": "MOCK",
+        "raw_evidence_reference": "MOCK",
+        "mocked_fields": [
+          "request_id",
+          "agent_identity",
+          "tool",
+          "target",
+          "authorization_decision",
+          "policy_identifier",
+          "timestamp",
+          "audit_event",
+          "downstream_request_reference",
+          "raw_evidence_reference"
+        ],
+        "note": "No F5 component was in the request path. This is a placeholder, not an F5 observation."
+      }
+    },
+    {
+      "request_label": "concurrent identical request 3",
+      "role": "attack",
+      "correlation": {
+        "test_id": "TC07",
+        "request_label": "concurrent identical request 3",
+        "proposal_id": "TC07-084155-update",
+        "agent_id": "agent-a",
+        "tool": "update_customer",
+        "target": "customer-123",
+        "sent_at": "2026-10-06T08:41:56.083942Z"
+      },
+      "observation": {
+        "source": "MOCK",
+        "provider": "mock (no F5 in path)",
+        "request_id": "MOCK",
+        "agent_identity": "MOCK",
+        "tool": "MOCK",
+        "target": "MOCK",
+        "authorization_decision": "NOT_OBSERVED",
+        "policy_identifier": "MOCK",
+        "timestamp": "MOCK",
+        "audit_event": "MOCK",
+        "downstream_request_reference": "MOCK",
+        "raw_evidence_reference": "MOCK",
+        "mocked_fields": [
+          "request_id",
+          "agent_identity",
+          "tool",
+          "target",
+          "authorization_decision",
+          "policy_identifier",
+          "timestamp",
+          "audit_event",
+          "downstream_request_reference",
+          "raw_evidence_reference"
+        ],
+        "note": "No F5 component was in the request path. This is a placeholder, not an F5 observation."
+      }
+    },
+    {
+      "request_label": "concurrent identical request 4",
+      "role": "attack",
+      "correlation": {
+        "test_id": "TC07",
+        "request_label": "concurrent identical request 4",
+        "proposal_id": "TC07-084155-update",
+        "agent_id": "agent-a",
+        "tool": "update_customer",
+        "target": "customer-123",
+        "sent_at": "2026-10-06T08:41:56.083942Z"
+      },
+      "observation": {
+        "source": "MOCK",
+        "provider": "mock (no F5 in path)",
+        "request_id": "MOCK",
+        "agent_identity": "MOCK",
+        "tool": "MOCK",
+        "target": "MOCK",
+        "authorization_decision": "NOT_OBSERVED",
+        "policy_identifier": "MOCK",
+        "timestamp": "MOCK",
+        "audit_event": "MOCK",
+        "downstream_request_reference": "MOCK",
+        "raw_evidence_reference": "MOCK",
+        "mocked_fields": [
+          "request_id",
+          "agent_identity",
+          "tool",
+          "target",
+          "authorization_decision",
+          "policy_identifier",
+          "timestamp",
+          "audit_event",
+          "downstream_request_reference",
+          "raw_evidence_reference"
+        ],
+        "note": "No F5 component was in the request path. This is a placeholder, not an F5 observation."
+      }
+    },
+    {
+      "request_label": "concurrent identical request 5 (accepted)",
+      "role": "legitimate",
+      "correlation": {
+        "test_id": "TC07",
+        "request_label": "concurrent identical request 5 (accepted)",
+        "proposal_id": "TC07-084155-update",
+        "agent_id": "agent-a",
+        "tool": "update_customer",
+        "target": "customer-123",
+        "sent_at": "2026-10-06T08:41:56.083942Z"
+      },
+      "observation": {
+        "source": "MOCK",
+        "provider": "mock (no F5 in path)",
+        "request_id": "MOCK",
+        "agent_identity": "MOCK",
+        "tool": "MOCK",
+        "target": "MOCK",
+        "authorization_decision": "NOT_OBSERVED",
+        "policy_identifier": "MOCK",
+        "timestamp": "MOCK",
+        "audit_event": "MOCK",
+        "downstream_request_reference": "MOCK",
+        "raw_evidence_reference": "MOCK",
+        "mocked_fields": [
+          "request_id",
+          "agent_identity",
+          "tool",
+          "target",
+          "authorization_decision",
+          "policy_identifier",
+          "timestamp",
+          "audit_event",
+          "downstream_request_reference",
+          "raw_evidence_reference"
+        ],
+        "note": "No F5 component was in the request path. This is a placeholder, not an F5 observation."
+      }
+    }
+  ],
+  "f5_provider": "mock (no F5 in path)",
+  "f5_result": "NOT_TESTED",
+  "sentrygate_ingress_decisions": [
+    {
+      "decision_id": "dec_CCE6VMYIAC2DHEYCFGWMOV552E",
+      "stage": "INGRESS",
+      "agent_id": "agent-a",
+      "command": "UPDATE_CUSTOMER",
+      "target_id": "customer-123",
+      "environment": "test",
+      "verdict": "ALLOW",
+      "reasons": [
+        "ENVIRONMENT_ALLOWED"
+      ],
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "d850895df37f519f982bb5e18bf880bb3b8de4585759f57f74064daeea171830",
+      "workflow_id": "saga-TC07-084155-update",
+      "recorded_at": "2026-10-06T08:41:56.0850723Z"
+    },
+    {
+      "decision_id": "dec_6AH3DXYSMSIZZWMX4WHN7C3NLQ",
+      "stage": "INGRESS",
+      "agent_id": "agent-a",
+      "command": "UPDATE_CUSTOMER",
+      "target_id": "customer-123",
+      "environment": "test",
+      "verdict": "ALLOW",
+      "reasons": [
+        "ENVIRONMENT_ALLOWED"
+      ],
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "d850895df37f519f982bb5e18bf880bb3b8de4585759f57f74064daeea171830",
+      "workflow_id": "saga-TC07-084155-update",
+      "recorded_at": "2026-10-06T08:41:56.0850723Z"
+    },
+    {
+      "decision_id": "dec_JTAJODFFQGQ475WNWPIXSUGCEP",
+      "stage": "INGRESS",
+      "agent_id": "agent-a",
+      "command": "UPDATE_CUSTOMER",
+      "target_id": "customer-123",
+      "environment": "test",
+      "verdict": "ALLOW",
+      "reasons": [
+        "ENVIRONMENT_ALLOWED"
+      ],
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "d850895df37f519f982bb5e18bf880bb3b8de4585759f57f74064daeea171830",
+      "workflow_id": "saga-TC07-084155-update",
+      "recorded_at": "2026-10-06T08:41:56.0850723Z"
+    },
+    {
+      "decision_id": "dec_24DMKNVRPVC4MXOXMYO2DBDOYT",
+      "stage": "INGRESS",
+      "agent_id": "agent-a",
+      "command": "UPDATE_CUSTOMER",
+      "target_id": "customer-123",
+      "environment": "test",
+      "verdict": "ALLOW",
+      "reasons": [
+        "ENVIRONMENT_ALLOWED"
+      ],
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "d850895df37f519f982bb5e18bf880bb3b8de4585759f57f74064daeea171830",
+      "workflow_id": "saga-TC07-084155-update",
+      "recorded_at": "2026-10-06T08:41:56.0855778Z"
+    },
+    {
+      "decision_id": "dec_GKVM4WMSQBZO5ABA4JQPN7GD4M",
+      "stage": "INGRESS",
+      "agent_id": "agent-a",
+      "command": "UPDATE_CUSTOMER",
+      "target_id": "customer-123",
+      "environment": "test",
+      "verdict": "ALLOW",
+      "reasons": [
+        "ENVIRONMENT_ALLOWED"
+      ],
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "d850895df37f519f982bb5e18bf880bb3b8de4585759f57f74064daeea171830",
+      "workflow_id": "saga-TC07-084155-update",
+      "recorded_at": "2026-10-06T08:41:56.0855778Z"
+    }
+  ],
+  "test_id": "TC07"
+}

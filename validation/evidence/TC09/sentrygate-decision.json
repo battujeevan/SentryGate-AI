@@ -1,0 +1,253 @@
+{
+  "attempts": [
+    {
+      "label": "agent-a update_customer(customer-lost-response)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-lost-response",
+      "sentrygate_outcome": "EXECUTED",
+      "sentrygate_detail": "workflow completed",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    }
+  ],
+  "runs": [
+    {
+      "workflow_id": "saga-TC09-084202-lost",
+      "run_id": "01a11060-840d-7abb-8f74-6088c4e44d82",
+      "agent_identity": "agent-a",
+      "command": "UPDATE_CUSTOMER",
+      "tool": "update_customer",
+      "target": "customer-lost-response",
+      "environment": "test",
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "da5ec1d0ae8142cb0e418acaa5c3ed1210f30f37724a4bfed6cd8ac03f91074a",
+      "ingress_decision_id": "dec_Z5YOXIQJWDQXANZ2WGDQ2TIE4X",
+      "authorization_decision": "INGRESS ALLOW [ENVIRONMENT_ALLOWED] (policy validation-v1)",
+      "revalidation_decision": "ALLOW [ENVIRONMENT_ALLOWED] (policy validation-v1)",
+      "claim_state": "COMPLETED",
+      "claim_owned_by_this_run": true,
+      "execution_state": "DISPATCH_UNKNOWN",
+      "fence_result": "ACQUIRED (adapter called)",
+      "reconciliation_state": "RECONCILIATION_REQUIRED -> RECONCILED_PASS",
+      "final_outcome": "COMPLETED",
+      "claim": {
+        "decision_id": "dec_Z5YOXIQJWDQXANZ2WGDQ2TIE4X",
+        "state": "COMPLETED",
+        "owner_workflow_id": "saga-TC09-084202-lost",
+        "owner_run_id": "01a11060-840d-7abb-8f74-6088c4e44d82",
+        "claimed_at": "2026-10-06T08:42:03.1637297Z",
+        "updated_at": "2026-10-06T08:42:03.2426866Z"
+      },
+      "history": {
+        "workflow_id": "saga-TC09-084202-lost",
+        "run_id": "01a11060-840d-7abb-8f74-6088c4e44d82",
+        "events": [
+          {
+            "event_id": 1,
+            "type": "WorkflowExecutionStarted"
+          },
+          {
+            "event_id": 5,
+            "type": "ActivityTaskScheduled",
+            "activity": "VerifyIngressDecision"
+          },
+          {
+            "event_id": 7,
+            "type": "ActivityTaskCompleted",
+            "activity": "VerifyIngressDecision"
+          },
+          {
+            "event_id": 11,
+            "type": "MarkerRecorded"
+          },
+          {
+            "event_id": 12,
+            "type": "ActivityTaskScheduled",
+            "activity": "ClaimExecution"
+          },
+          {
+            "event_id": 14,
+            "type": "ActivityTaskCompleted",
+            "activity": "ClaimExecution"
+          },
+          {
+            "event_id": 18,
+            "type": "ActivityTaskScheduled",
+            "activity": "EvaluateExecution"
+          },
+          {
+            "event_id": 20,
+            "type": "ActivityTaskCompleted",
+            "activity": "EvaluateExecution"
+          },
+          {
+            "event_id": 24,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordDecision"
+          },
+          {
+            "event_id": 26,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordDecision"
+          },
+          {
+            "event_id": 30,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 32,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 36,
+            "type": "ActivityTaskScheduled",
+            "activity": "DispatchConfig"
+          },
+          {
+            "event_id": 38,
+            "type": "ActivityTaskCompleted",
+            "activity": "DispatchConfig"
+          },
+          {
+            "event_id": 42,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 44,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 48,
+            "type": "ActivityTaskScheduled",
+            "activity": "AdvanceExecutionClaim",
+            "claim_transition_to": "RECONCILIATION_REQUIRED"
+          },
+          {
+            "event_id": 50,
+            "type": "ActivityTaskCompleted",
+            "activity": "AdvanceExecutionClaim"
+          },
+          {
+            "event_id": 54,
+            "type": "ActivityTaskScheduled",
+            "activity": "ReconcileDispatch"
+          },
+          {
+            "event_id": 56,
+            "type": "ActivityTaskCompleted",
+            "activity": "ReconcileDispatch"
+          },
+          {
+            "event_id": 60,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 62,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 66,
+            "type": "ActivityTaskScheduled",
+            "activity": "AdvanceExecutionClaim",
+            "claim_transition_to": "COMPLETED"
+          },
+          {
+            "event_id": 68,
+            "type": "ActivityTaskCompleted",
+            "activity": "AdvanceExecutionClaim"
+          },
+          {
+            "event_id": 72,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 74,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 78,
+            "type": "WorkflowExecutionCompleted"
+          }
+        ],
+        "claim_reset_point": 17
+      },
+      "audit_trail": [
+        {
+          "phase": "WORKFLOW_REVALIDATION",
+          "verdict": "PASS",
+          "detail": "verdict=ALLOW reasons=ENVIRONMENT_ALLOWED policy_version=validation-v1 ingress_decision_id=dec_Z5YOXIQJWDQXANZ2WGDQ2TIE4X",
+          "recorded_at": "2026-10-06T08:42:03.1781594Z"
+        },
+        {
+          "phase": "DISPATCH_CONFIG",
+          "verdict": "UNKNOWN",
+          "detail": "outcome=UNKNOWN partially_applied=false idempotency_key=sentrygate.exec.v1:dec_Z5YOXIQJWDQXANZ2WGDQ2TIE4X target=customer-lost-response detail=\"mcp: tools/call may have been sent; no usable response: calling \\\"tools/call\\\": sending \\\"tools/call\\\": rejected by transport: Post \\\"http://127.0.0.1:54369/mcp\\\": EOF\"",
+          "recorded_at": "2026-10-06T08:42:03.1965913Z"
+        },
+        {
+          "phase": "DISPATCH_RECONCILIATION",
+          "verdict": "PASS",
+          "detail": "outcome=SUCCESS partially_applied=false idempotency_key=sentrygate.exec.v1:dec_Z5YOXIQJWDQXANZ2WGDQ2TIE4X target=customer-lost-response detail=\"mcp: reconciled key state=APPLIED\"",
+          "recorded_at": "2026-10-06T08:42:03.2233315Z"
+        },
+        {
+          "phase": "WORKFLOW_COMPLETE",
+          "verdict": "PASS",
+          "detail": "workflow completed without compensation",
+          "recorded_at": "2026-10-06T08:42:03.2466956Z"
+        }
+      ],
+      "decision_records": [
+        {
+          "decision_id": "dec_Z5YOXIQJWDQXANZ2WGDQ2TIE4X",
+          "stage": "INGRESS",
+          "agent_id": "agent-a",
+          "command": "UPDATE_CUSTOMER",
+          "target_id": "customer-lost-response",
+          "environment": "test",
+          "verdict": "ALLOW",
+          "reasons": [
+            "ENVIRONMENT_ALLOWED"
+          ],
+          "policy_version": "validation-v1",
+          "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+          "request_hash": "da5ec1d0ae8142cb0e418acaa5c3ed1210f30f37724a4bfed6cd8ac03f91074a",
+          "workflow_id": "saga-TC09-084202-lost",
+          "recorded_at": "2026-10-06T08:42:03.1466962Z"
+        },
+        {
+          "decision_id": "wf_saga-TC09-084202-lost_01a11060-840d-7abb-8f74-6088c4e44d82",
+          "stage": "WORKFLOW_REVALIDATION",
+          "agent_id": "agent-a",
+          "command": "UPDATE_CUSTOMER",
+          "target_id": "customer-lost-response",
+          "environment": "test",
+          "verdict": "ALLOW",
+          "reasons": [
+            "ENVIRONMENT_ALLOWED"
+          ],
+          "policy_version": "validation-v1",
+          "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+          "request_hash": "da5ec1d0ae8142cb0e418acaa5c3ed1210f30f37724a4bfed6cd8ac03f91074a",
+          "workflow_id": "saga-TC09-084202-lost",
+          "recorded_at": "2026-10-06T08:42:03.171997Z"
+        }
+      ]
+    }
+  ],
+  "sentrygate_result": "EXECUTED",
+  "test_id": "TC09"
+}

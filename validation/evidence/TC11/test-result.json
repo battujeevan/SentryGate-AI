@@ -1,0 +1,178 @@
+{
+  "test_id": "TC11",
+  "test_name": "Identity substitution",
+  "kind": "attack",
+  "objective": "The agent identity executed must be the identity authenticated at ingress.",
+  "method": [
+    "Ingress: agent-b sends an update with an extra agent_id=agent-a field in the request body.",
+    "Ingress: a request claiming to be agent-a with a key that is not agent-a's; a request with no key.",
+    "Execution boundary: agent-a obtains an unused ALLOW for update_customer(customer-123); the attacker starts the workflow with the same decision and proposal but agent_id=agent-b."
+  ],
+  "expected": "Ingress rejects the body field (400; the identity comes only from the API key) and the bad or missing keys (401). The substituted run fails INGRESS_DECISION_INVALID (INGRESS_DECISION_AGENT_MISMATCH). No tools/call.",
+  "status": "VERIFIED",
+  "f5_result": "NOT_TESTED",
+  "f5_provider": "mock (no F5 in path)",
+  "f5_observation_source": "MOCK",
+  "sentrygate_result": "BLOCKED_EXECUTION",
+  "infrastructure_result": "NOT_EXECUTED",
+  "mutation_count": 0,
+  "expected_mutation_count": 0,
+  "tool_invocations": 0,
+  "checks": [
+    {
+      "name": "execution claim on the held decision",
+      "expected": "NONE",
+      "observed": "NONE",
+      "result": "PASS"
+    },
+    {
+      "name": "customer-123 record unchanged",
+      "expected": "version=1 deleted=false",
+      "observed": "version=1 deleted=false",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: agent-b request body claims agent_id=agent-a",
+      "expected": "REJECTED_AT_INGRESS (HTTP 400)",
+      "observed": "REJECTED_AT_INGRESS HTTP 400 invalid agent proposal: json: unknown field \"agent_id\"",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: request as agent-a with a key that is not agent-a's",
+      "expected": "REJECTED_AT_INGRESS (HTTP 401)",
+      "observed": "REJECTED_AT_INGRESS HTTP 401 missing or invalid API key",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: request with no API key",
+      "expected": "REJECTED_AT_INGRESS (HTTP 401)",
+      "observed": "REJECTED_AT_INGRESS HTTP 401 missing or invalid API key",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: agent-a update_customer(customer-123) (authorized, then held)",
+      "expected": "TERMINATED_BEFORE_EXECUTION",
+      "observed": "TERMINATED_BEFORE_EXECUTION run terminated",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: present agent-a's decision as agent-b",
+      "expected": "REFUSED_AT_EXECUTION_BOUNDARY (INGRESS_DECISION_AGENT_MISMATCH)",
+      "observed": "REFUSED_AT_EXECUTION_BOUNDARY INGRESS_DECISION_INVALID INGRESS_DECISION_AGENT_MISMATCH",
+      "result": "PASS"
+    },
+    {
+      "name": "infrastructure mutation count (test MCP server database)",
+      "expected": "0",
+      "observed": "0",
+      "result": "PASS"
+    },
+    {
+      "name": "no idempotency key mutated the target more than once",
+      "expected": "none",
+      "observed": "none",
+      "result": "PASS"
+    }
+  ],
+  "attempts": [
+    {
+      "label": "agent-b request body claims agent_id=agent-a",
+      "role": "attack",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-b",
+      "sentrygate_outcome": "REJECTED_AT_INGRESS",
+      "sentrygate_detail": "HTTP 400 invalid agent proposal: json: unknown field \"agent_id\"",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    },
+    {
+      "label": "request as agent-a with a key that is not agent-a's",
+      "role": "attack",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a (wrong key)",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "sentrygate_outcome": "REJECTED_AT_INGRESS",
+      "sentrygate_detail": "HTTP 401 missing or invalid API key",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    },
+    {
+      "label": "request with no API key",
+      "role": "attack",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "(none)",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "sentrygate_outcome": "REJECTED_AT_INGRESS",
+      "sentrygate_detail": "HTTP 401 missing or invalid API key",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    },
+    {
+      "label": "agent-a update_customer(customer-123) (authorized, then held)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "sentrygate_outcome": "TERMINATED_BEFORE_EXECUTION",
+      "sentrygate_detail": "run terminated",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    },
+    {
+      "label": "setup: terminate the authorized run before any worker runs it",
+      "role": "setup",
+      "path": "execution-boundary",
+      "action": "Temporal TerminateWorkflowExecution",
+      "agent_id": "",
+      "sentrygate_outcome": "N/A (not an execution attempt)"
+    },
+    {
+      "label": "present agent-a's decision as agent-b",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal StartWorkflowExecution",
+      "agent_id": "agent-b",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "INGRESS_DECISION_INVALID INGRESS_DECISION_AGENT_MISMATCH"
+    }
+  ],
+  "notes": [
+    "F5 result NOT_TESTED: no F5 component was in the request path; the F5 observation provider was \"mock (no F5 in path)\" and returned placeholders only."
+  ],
+  "limitations": [],
+  "environment": {
+    "arch": "amd64",
+    "go_version": "go1.27.0",
+    "ingress_path": "test agent -> SentryGate proxy (direct, no gateway)",
+    "mcp_server": "validation/cmd/mcp-test-server (disposable SQLite database per test)",
+    "os": "windows",
+    "sentrygate_worker_adapter": "mcp (workflows.MCPAdapter, SENTRYGATE_ADAPTER=mcp)",
+    "source_revision": "a2fa280747b81037ca4769997b3c86999b9421b8 (with uncommitted changes)",
+    "temporal_mode": "Temporal CLI dev server (server start-dev, in-memory), started by the harness",
+    "temporal_version": "temporal version 1.9.1 (Server 1.32.0, UI 2.54.1)",
+    "worker_mcp_path": "SentryGate worker -> test MCP server (direct, no gateway)"
+  },
+  "started_at": "2026-10-06T08:42:05Z",
+  "finished_at": "2026-10-06T08:42:06Z",
+  "evidence_path": "validation/evidence/TC11",
+  "files": [
+    "after-state.json",
+    "authorization.json",
+    "before-state.json",
+    "execution-count.json",
+    "execution.json",
+    "infrastructure-state.json",
+    "request.json",
+    "sentrygate-decision.json",
+    "test-result.json"
+  ]
+}

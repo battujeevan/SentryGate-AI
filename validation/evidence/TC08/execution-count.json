@@ -1,0 +1,23 @@
+{
+  "counts": {
+    "invocations": 2,
+    "applied": 2,
+    "mutations": 2,
+    "invocations_by_tool": {
+      "update_customer": 2
+    },
+    "invocations_by_target": {
+      "customer-123": 1,
+      "customer-gated": 1
+    },
+    "invocations_by_idempotency_key": {
+      "sentrygate.exec.v1:dec_D2E2VIDWW2WLYSUS6SMYUEKTTG": 1,
+      "sentrygate.exec.v1:dec_XF6KAZA2M2F4FSUMKWACPMRMO4": 1
+    },
+    "mutations_by_target": {
+      "customer-123": 1,
+      "customer-gated": 1
+    }
+  },
+  "test_id": "TC08"
+}

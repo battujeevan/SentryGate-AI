@@ -1,4 +1,4 @@
-.PHONY: demo demo-ps up down test race bench check build tidy
+.PHONY: demo demo-ps up down test race bench check build tidy validation-f5 validation-report
 
 up:
 	docker compose up -d --build
@@ -33,3 +33,17 @@ build:
 
 tidy:
 	go mod tidy
+
+# F5 validation harness (validation/F5/README.md). Runs locally without F5:
+# every F5 result is NOT_TESTED until a real F5 observation provider exists.
+validation-f5:
+	go run ./validation/cmd/f5validate -tc all
+	go run ./validation/cmd/f5report
+
+# One test, e.g. make validation-f5-tc05.
+validation-f5-tc%:
+	go run ./validation/cmd/f5validate -tc TC$*
+
+# Matrix and report from stored evidence only; runs no test.
+validation-report:
+	go run ./validation/cmd/f5report

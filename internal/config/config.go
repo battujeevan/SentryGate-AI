@@ -21,6 +21,11 @@ type Config struct {
 	OTelExporter      string // "stdout" | "none"
 	ShutdownTimeout   time.Duration
 	PolicyReloadEvery time.Duration
+
+	// Worker infrastructure adapter: "simulated" (default) or "mcp".
+	Adapter           string
+	MCPURL            string
+	MCPTargetArgument string
 }
 
 // LoadFromEnv reads proxy configuration. SENTRYGATE_AGENT_KEYS is required.
@@ -36,7 +41,11 @@ func LoadFromEnv() (Config, error) {
 // LoadWorkerFromEnv reads worker configuration. The worker does not accept
 // agent traffic and never needs agent keys.
 func LoadWorkerFromEnv() Config {
-	return baseFromEnv()
+	cfg := baseFromEnv()
+	cfg.Adapter = envOr("SENTRYGATE_ADAPTER", "simulated")
+	cfg.MCPURL = os.Getenv("SENTRYGATE_MCP_URL")
+	cfg.MCPTargetArgument = envOr("SENTRYGATE_MCP_TARGET_ARGUMENT", "target_id")
+	return cfg
 }
 
 func baseFromEnv() Config {

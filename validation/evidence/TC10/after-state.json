@@ -1,0 +1,60 @@
+{
+  "read_error": "",
+  "state": {
+    "customers": [
+      {
+        "customer_id": "customer-123",
+        "name": "Ada Example",
+        "email": "ada@example.test",
+        "tier": "standard",
+        "deleted": false,
+        "version": 1
+      },
+      {
+        "customer_id": "customer-456",
+        "name": "Grace Example",
+        "email": "grace@example.test",
+        "tier": "gold",
+        "deleted": false,
+        "version": 1
+      },
+      {
+        "customer_id": "customer-gated",
+        "name": "Gated Target",
+        "email": "gated@example.test",
+        "tier": "standard",
+        "deleted": false,
+        "version": 1
+      },
+      {
+        "customer_id": "customer-lost-response",
+        "name": "Lost Response",
+        "email": "lost@example.test",
+        "tier": "standard",
+        "deleted": false,
+        "version": 1
+      }
+    ],
+    "executions": [
+      {
+        "execution_id": "x000001",
+        "timestamp": "2026-10-06T08:42:04.1853837Z",
+        "agent_id": "agent-a",
+        "tool": "read_customer",
+        "target": "customer-123",
+        "request": "{\"customer_id\":\"customer-123\"}",
+        "request_hash": "ba93457e5358e3ce0e5d820b7adb2eda89c65f9dd163c260fe84637d94db6004",
+        "sentrygate_request_hash": "9c708eaaf3430a1b7c54e7cdac383a2ad4a7bb2c8bab2a56e946b39c51c98934",
+        "idempotency_key": "sentrygate.exec.v1:dec_FXSC3AVQGLZIHJGIJUP4CV7WVN",
+        "proposal_id": "TC10-084203-read",
+        "result": "APPLIED",
+        "detail": "customer read",
+        "mutation_count": 0
+      }
+    ],
+    "exports": [],
+    "fenced_keys": [],
+    "transport_events": []
+  },
+  "test_id": "TC10"
+}

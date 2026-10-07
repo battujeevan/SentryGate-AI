@@ -1,0 +1,147 @@
+{
+  "note": "API keys are never recorded. path=gateway is POST /v1/intercept; path=execution-boundary is direct Temporal access.",
+  "requests": [
+    {
+      "label": "agent-b request body claims agent_id=agent-a",
+      "role": "attack",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-b",
+      "raw_body": "{\"id\":\"TC11-084205-body\",\"type\":\"UPDATE_CUSTOMER\",\"target_id\":\"customer-123\",\"payload\":\"{\\\"tier\\\":\\\"gold\\\"}\",\"agent_id\":\"agent-a\"}",
+      "sent_at": "2026-10-06T08:42:05.476295Z",
+      "http_status": 400,
+      "response": {
+        "status": "invalid",
+        "error": "invalid agent proposal: json: unknown field \"agent_id\""
+      },
+      "sentrygate_outcome": "REJECTED_AT_INGRESS",
+      "sentrygate_detail": "HTTP 400 invalid agent proposal: json: unknown field \"agent_id\""
+    },
+    {
+      "label": "request as agent-a with a key that is not agent-a's",
+      "role": "attack",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a (wrong key)",
+      "proposal": {
+        "id": "TC11-084205-badkey",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{\"tier\":\"gold\"}"
+      },
+      "sent_at": "2026-10-06T08:42:05.4768227Z",
+      "http_status": 401,
+      "response": {
+        "status": "unauthorized",
+        "error": "missing or invalid API key"
+      },
+      "sentrygate_outcome": "REJECTED_AT_INGRESS",
+      "sentrygate_detail": "HTTP 401 missing or invalid API key"
+    },
+    {
+      "label": "request with no API key",
+      "role": "attack",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "(none)",
+      "proposal": {
+        "id": "TC11-084205-nokey",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{\"tier\":\"gold\"}"
+      },
+      "sent_at": "2026-10-06T08:42:05.4768227Z",
+      "http_status": 401,
+      "response": {
+        "status": "unauthorized",
+        "error": "missing or invalid API key"
+      },
+      "sentrygate_outcome": "REJECTED_AT_INGRESS",
+      "sentrygate_detail": "HTTP 401 missing or invalid API key"
+    },
+    {
+      "label": "agent-a update_customer(customer-123) (authorized, then held)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "proposal": {
+        "id": "TC11-084205-update",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{\"tier\":\"silver\"}"
+      },
+      "workflow_id": "saga-TC11-084205-update",
+      "run_id": "01a11060-8d2c-766b-84c5-a8c5befbedb9",
+      "sent_at": "2026-10-06T08:42:05.4811498Z",
+      "http_status": 200,
+      "response": {
+        "status": "accepted",
+        "verdict": "ALLOW",
+        "reasons": [
+          "ENVIRONMENT_ALLOWED"
+        ],
+        "decision_id": "dec_3UBGONX7MQ2A2R232DQVGKQ54Y",
+        "proposal_id": "TC11-084205-update",
+        "workflow_id": "saga-TC11-084205-update",
+        "run_id": "01a11060-8d2c-766b-84c5-a8c5befbedb9"
+      },
+      "workflow_outcome": {
+        "workflow_id": "saga-TC11-084205-update",
+        "run_id": "01a11060-8d2c-766b-84c5-a8c5befbedb9",
+        "status": "TERMINATED"
+      },
+      "sentrygate_outcome": "TERMINATED_BEFORE_EXECUTION",
+      "sentrygate_detail": "run terminated"
+    },
+    {
+      "label": "setup: terminate the authorized run before any worker runs it",
+      "role": "setup",
+      "path": "execution-boundary",
+      "action": "Temporal TerminateWorkflowExecution",
+      "agent_id": "",
+      "workflow_id": "saga-TC11-084205-update",
+      "run_id": "01a11060-8d2c-766b-84c5-a8c5befbedb9",
+      "sent_at": "2026-10-06T08:42:05.4867212Z",
+      "sentrygate_outcome": "N/A (not an execution attempt)"
+    },
+    {
+      "label": "present agent-a's decision as agent-b",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal StartWorkflowExecution",
+      "agent_id": "agent-b",
+      "proposal": {
+        "id": "TC11-084205-update",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{\"tier\":\"silver\"}"
+      },
+      "execution_request": {
+        "agent_id": "agent-b",
+        "proposal": {
+          "id": "TC11-084205-update",
+          "type": "UPDATE_CUSTOMER",
+          "target_id": "customer-123",
+          "payload": "{\"tier\":\"silver\"}"
+        },
+        "ingress_decision_id": "dec_3UBGONX7MQ2A2R232DQVGKQ54Y",
+        "request_hash": "e4afd5b2bb836998bcd791c1cd50be12a3e7ec8e24cae47912fa17046bbfa074"
+      },
+      "workflow_id": "saga-TC11-084205-update",
+      "run_id": "01a11060-8d34-757f-9d7a-eef80b93c2bb",
+      "sent_at": "2026-10-06T08:42:05.491699Z",
+      "workflow_outcome": {
+        "workflow_id": "saga-TC11-084205-update",
+        "run_id": "01a11060-8d34-757f-9d7a-eef80b93c2bb",
+        "status": "FAILED",
+        "error_type": "INGRESS_DECISION_INVALID",
+        "reason": "INGRESS_DECISION_AGENT_MISMATCH",
+        "message": "execution rejected: INGRESS_DECISION_AGENT_MISMATCH (type: INGRESS_DECISION_INVALID, retryable: false)"
+      },
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "INGRESS_DECISION_INVALID INGRESS_DECISION_AGENT_MISMATCH"
+    }
+  ],
+  "test_id": "TC11"
+}

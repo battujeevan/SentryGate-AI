@@ -1,0 +1,227 @@
+{
+  "attempts": [
+    {
+      "label": "agent-a export_customer(customer-123) via ingress",
+      "role": "attack",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "tool": "export_customer",
+      "target": "customer-123",
+      "sentrygate_outcome": "DENIED_AT_INGRESS",
+      "sentrygate_detail": "verdict=DENY reasons=COMMAND_NOT_PERMITTED_FOR_AGENT decision_id=dec_JAU2XHTVKT6YLVTDFMENTZJBCD",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    },
+    {
+      "label": "agent-a read_customer(customer-456) (authorized, then held)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "tool": "read_customer",
+      "target": "customer-456",
+      "sentrygate_outcome": "TERMINATED_BEFORE_EXECUTION",
+      "sentrygate_detail": "run terminated",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    },
+    {
+      "label": "setup: terminate the authorized run before any worker runs it",
+      "role": "setup",
+      "path": "execution-boundary",
+      "action": "Temporal TerminateWorkflowExecution",
+      "agent_id": "",
+      "sentrygate_outcome": "N/A (not an execution attempt)"
+    },
+    {
+      "label": "substitute update_customer for the authorized read_customer",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal StartWorkflowExecution",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-456",
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "INGRESS_DECISION_INVALID INGRESS_DECISION_HASH_MISMATCH"
+    }
+  ],
+  "runs": [
+    {
+      "workflow_id": "saga-TC02-084149-read",
+      "run_id": "01a11060-4f46-73db-ac7a-7d0c6eb169d0",
+      "agent_identity": "agent-a",
+      "command": "READ_CUSTOMER",
+      "tool": "read_customer",
+      "target": "customer-456",
+      "environment": "test",
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "836fa90da189208276a895fdb2d2d8e68952abd309f93ad7924c18074f9371ad",
+      "ingress_decision_id": "dec_SLWYGOUELTCSCXDKJZXVFW2GRI",
+      "authorization_decision": "INGRESS ALLOW [ENVIRONMENT_ALLOWED] (policy validation-v1)",
+      "revalidation_decision": "NOT_RECORDED",
+      "claim_state": "NONE",
+      "claim_owned_by_this_run": false,
+      "execution_state": "NOT_DISPATCHED",
+      "fence_result": "NOT_REACHED",
+      "reconciliation_state": "NOT_REQUIRED",
+      "final_outcome": "TERMINATED",
+      "claim": {
+        "decision_id": "dec_SLWYGOUELTCSCXDKJZXVFW2GRI",
+        "state": "NONE"
+      },
+      "history": {
+        "workflow_id": "saga-TC02-084149-read",
+        "run_id": "01a11060-4f46-73db-ac7a-7d0c6eb169d0",
+        "events": [
+          {
+            "event_id": 1,
+            "type": "WorkflowExecutionStarted"
+          },
+          {
+            "event_id": 3,
+            "type": "WorkflowExecutionTerminated"
+          }
+        ]
+      },
+      "audit_trail": [],
+      "decision_records": [
+        {
+          "decision_id": "dec_SLWYGOUELTCSCXDKJZXVFW2GRI",
+          "stage": "INGRESS",
+          "agent_id": "agent-a",
+          "command": "READ_CUSTOMER",
+          "target_id": "customer-456",
+          "environment": "test",
+          "verdict": "ALLOW",
+          "reasons": [
+            "ENVIRONMENT_ALLOWED"
+          ],
+          "policy_version": "validation-v1",
+          "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+          "request_hash": "836fa90da189208276a895fdb2d2d8e68952abd309f93ad7924c18074f9371ad",
+          "workflow_id": "saga-TC02-084149-read",
+          "recorded_at": "2026-10-06T08:41:49.6360824Z"
+        }
+      ]
+    },
+    {
+      "workflow_id": "saga-TC02-084149-read",
+      "run_id": "01a11060-4f4c-7b97-8f5f-60da6f0c1eed",
+      "agent_identity": "agent-a",
+      "command": "UPDATE_CUSTOMER",
+      "tool": "update_customer",
+      "target": "customer-456",
+      "environment": "",
+      "policy_version": "",
+      "policy_digest": "",
+      "request_hash": "836fa90da189208276a895fdb2d2d8e68952abd309f93ad7924c18074f9371ad",
+      "ingress_decision_id": "dec_SLWYGOUELTCSCXDKJZXVFW2GRI",
+      "authorization_decision": "INGRESS ALLOW [ENVIRONMENT_ALLOWED] (policy validation-v1)",
+      "revalidation_decision": "DENY [INGRESS_DECISION_HASH_MISMATCH] (policy )",
+      "claim_state": "NONE",
+      "claim_owned_by_this_run": false,
+      "execution_state": "NOT_DISPATCHED",
+      "fence_result": "NOT_REACHED",
+      "reconciliation_state": "NOT_REQUIRED",
+      "final_outcome": "FAILED INGRESS_DECISION_INVALID (INGRESS_DECISION_HASH_MISMATCH)",
+      "claim": {
+        "decision_id": "dec_SLWYGOUELTCSCXDKJZXVFW2GRI",
+        "state": "NONE"
+      },
+      "history": {
+        "workflow_id": "saga-TC02-084149-read",
+        "run_id": "01a11060-4f4c-7b97-8f5f-60da6f0c1eed",
+        "events": [
+          {
+            "event_id": 1,
+            "type": "WorkflowExecutionStarted"
+          },
+          {
+            "event_id": 5,
+            "type": "ActivityTaskScheduled",
+            "activity": "VerifyIngressDecision"
+          },
+          {
+            "event_id": 7,
+            "type": "ActivityTaskCompleted",
+            "activity": "VerifyIngressDecision"
+          },
+          {
+            "event_id": 11,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordDecision"
+          },
+          {
+            "event_id": 13,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordDecision"
+          },
+          {
+            "event_id": 17,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 19,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 23,
+            "type": "WorkflowExecutionFailed",
+            "failure_type": "INGRESS_DECISION_INVALID",
+            "failure": "execution rejected: INGRESS_DECISION_HASH_MISMATCH"
+          }
+        ]
+      },
+      "audit_trail": [
+        {
+          "phase": "WORKFLOW_REVALIDATION",
+          "verdict": "FAIL",
+          "detail": "execution rejected: reason=INGRESS_DECISION_HASH_MISMATCH detail=\"ingress decision request hash does not match proposal\" ingress_decision_id=\"dec_SLWYGOUELTCSCXDKJZXVFW2GRI\"",
+          "recorded_at": "2026-10-06T08:41:49.7345121Z"
+        }
+      ],
+      "decision_records": [
+        {
+          "decision_id": "dec_SLWYGOUELTCSCXDKJZXVFW2GRI",
+          "stage": "INGRESS",
+          "agent_id": "agent-a",
+          "command": "READ_CUSTOMER",
+          "target_id": "customer-456",
+          "environment": "test",
+          "verdict": "ALLOW",
+          "reasons": [
+            "ENVIRONMENT_ALLOWED"
+          ],
+          "policy_version": "validation-v1",
+          "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+          "request_hash": "836fa90da189208276a895fdb2d2d8e68952abd309f93ad7924c18074f9371ad",
+          "workflow_id": "saga-TC02-084149-read",
+          "recorded_at": "2026-10-06T08:41:49.6360824Z"
+        },
+        {
+          "decision_id": "wf_saga-TC02-084149-read_01a11060-4f4c-7b97-8f5f-60da6f0c1eed",
+          "stage": "WORKFLOW_REVALIDATION",
+          "agent_id": "agent-a",
+          "command": "UPDATE_CUSTOMER",
+          "target_id": "customer-456",
+          "environment": "",
+          "verdict": "DENY",
+          "reasons": [
+            "INGRESS_DECISION_HASH_MISMATCH"
+          ],
+          "policy_version": "",
+          "policy_digest": "",
+          "request_hash": "9d75fe605c3f9d736301c9c5863d09bae2e3a69a7830991e97e1ada895a2f4ca",
+          "workflow_id": "saga-TC02-084149-read",
+          "recorded_at": "2026-10-06T08:41:49.7262886Z"
+        }
+      ]
+    }
+  ],
+  "sentrygate_result": "BLOCKED_EXECUTION",
+  "test_id": "TC02"
+}

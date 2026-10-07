@@ -1,0 +1,189 @@
+{
+  "attempts": [
+    {
+      "label": "agent-a update_customer(customer-123) under validation-v1, queued",
+      "role": "attack",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "REVALIDATION_DENIED",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    },
+    {
+      "label": "agent-a update_customer(customer-123) under validation-v2",
+      "role": "attack",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "sentrygate_outcome": "DENIED_AT_INGRESS",
+      "sentrygate_detail": "verdict=DENY reasons=COMMAND_NOT_PERMITTED_FOR_AGENT decision_id=dec_HKXMEZYPWRUODDIT34IDQ7IQOF",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    }
+  ],
+  "runs": [
+    {
+      "workflow_id": "saga-TC05-084152-v1",
+      "run_id": "01a11060-5b59-7acf-b3f3-6f8807898fa9",
+      "agent_identity": "agent-a",
+      "command": "UPDATE_CUSTOMER",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "environment": "test",
+      "policy_version": "validation-v2",
+      "policy_digest": "5d8ab0d901594791bbb9713f7d724d96426c5563bdbfdbd875134834c21c0734",
+      "request_hash": "b614e29e50f919d1d0db3a64840178e5e25c857db0d9bb05ed4d56eaf08bacf7",
+      "ingress_decision_id": "dec_CBQ7HDIK56X2PV7MMADJNFULMT",
+      "authorization_decision": "INGRESS ALLOW [ENVIRONMENT_ALLOWED] (policy validation-v1)",
+      "revalidation_decision": "DENY [COMMAND_NOT_PERMITTED_FOR_AGENT] (policy validation-v2)",
+      "claim_state": "RELEASED",
+      "claim_owned_by_this_run": true,
+      "execution_state": "NOT_DISPATCHED",
+      "fence_result": "NOT_REACHED",
+      "reconciliation_state": "NOT_REQUIRED",
+      "final_outcome": "FAILED REVALIDATION_DENIED",
+      "claim": {
+        "decision_id": "dec_CBQ7HDIK56X2PV7MMADJNFULMT",
+        "state": "RELEASED",
+        "owner_workflow_id": "saga-TC05-084152-v1",
+        "owner_run_id": "01a11060-5b59-7acf-b3f3-6f8807898fa9",
+        "claimed_at": "2026-10-06T08:41:53.6247978Z",
+        "updated_at": "2026-10-06T08:41:53.6557487Z"
+      },
+      "history": {
+        "workflow_id": "saga-TC05-084152-v1",
+        "run_id": "01a11060-5b59-7acf-b3f3-6f8807898fa9",
+        "events": [
+          {
+            "event_id": 1,
+            "type": "WorkflowExecutionStarted"
+          },
+          {
+            "event_id": 5,
+            "type": "ActivityTaskScheduled",
+            "activity": "VerifyIngressDecision"
+          },
+          {
+            "event_id": 7,
+            "type": "ActivityTaskCompleted",
+            "activity": "VerifyIngressDecision"
+          },
+          {
+            "event_id": 11,
+            "type": "MarkerRecorded"
+          },
+          {
+            "event_id": 12,
+            "type": "ActivityTaskScheduled",
+            "activity": "ClaimExecution"
+          },
+          {
+            "event_id": 14,
+            "type": "ActivityTaskCompleted",
+            "activity": "ClaimExecution"
+          },
+          {
+            "event_id": 18,
+            "type": "ActivityTaskScheduled",
+            "activity": "EvaluateExecution"
+          },
+          {
+            "event_id": 20,
+            "type": "ActivityTaskCompleted",
+            "activity": "EvaluateExecution"
+          },
+          {
+            "event_id": 24,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordDecision"
+          },
+          {
+            "event_id": 26,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordDecision"
+          },
+          {
+            "event_id": 30,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 32,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 36,
+            "type": "ActivityTaskScheduled",
+            "activity": "AdvanceExecutionClaim",
+            "claim_transition_to": "RELEASED"
+          },
+          {
+            "event_id": 38,
+            "type": "ActivityTaskCompleted",
+            "activity": "AdvanceExecutionClaim"
+          },
+          {
+            "event_id": 42,
+            "type": "WorkflowExecutionFailed",
+            "failure_type": "REVALIDATION_DENIED",
+            "failure": "proposal denied at workflow re-validation: DENY COMMAND_NOT_PERMITTED_FOR_AGENT"
+          }
+        ],
+        "claim_reset_point": 17
+      },
+      "audit_trail": [
+        {
+          "phase": "WORKFLOW_REVALIDATION",
+          "verdict": "FAIL",
+          "detail": "verdict=DENY reasons=COMMAND_NOT_PERMITTED_FOR_AGENT policy_version=validation-v2 ingress_decision_id=dec_CBQ7HDIK56X2PV7MMADJNFULMT",
+          "recorded_at": "2026-10-06T08:41:53.645109Z"
+        }
+      ],
+      "decision_records": [
+        {
+          "decision_id": "dec_CBQ7HDIK56X2PV7MMADJNFULMT",
+          "stage": "INGRESS",
+          "agent_id": "agent-a",
+          "command": "UPDATE_CUSTOMER",
+          "target_id": "customer-123",
+          "environment": "test",
+          "verdict": "ALLOW",
+          "reasons": [
+            "ENVIRONMENT_ALLOWED"
+          ],
+          "policy_version": "validation-v1",
+          "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+          "request_hash": "b614e29e50f919d1d0db3a64840178e5e25c857db0d9bb05ed4d56eaf08bacf7",
+          "workflow_id": "saga-TC05-084152-v1",
+          "recorded_at": "2026-10-06T08:41:52.7268204Z"
+        },
+        {
+          "decision_id": "wf_saga-TC05-084152-v1_01a11060-5b59-7acf-b3f3-6f8807898fa9",
+          "stage": "WORKFLOW_REVALIDATION",
+          "agent_id": "agent-a",
+          "command": "UPDATE_CUSTOMER",
+          "target_id": "customer-123",
+          "environment": "test",
+          "verdict": "DENY",
+          "reasons": [
+            "COMMAND_NOT_PERMITTED_FOR_AGENT"
+          ],
+          "policy_version": "validation-v2",
+          "policy_digest": "5d8ab0d901594791bbb9713f7d724d96426c5563bdbfdbd875134834c21c0734",
+          "request_hash": "b614e29e50f919d1d0db3a64840178e5e25c857db0d9bb05ed4d56eaf08bacf7",
+          "workflow_id": "saga-TC05-084152-v1",
+          "recorded_at": "2026-10-06T08:41:53.638562Z"
+        }
+      ]
+    }
+  ],
+  "sentrygate_result": "BLOCKED_EXECUTION",
+  "test_id": "TC05"
+}

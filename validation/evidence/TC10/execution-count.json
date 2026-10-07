@@ -1,0 +1,20 @@
+{
+  "counts": {
+    "invocations": 1,
+    "applied": 1,
+    "mutations": 0,
+    "invocations_by_tool": {
+      "read_customer": 1
+    },
+    "invocations_by_target": {
+      "customer-123": 1
+    },
+    "invocations_by_idempotency_key": {
+      "sentrygate.exec.v1:dec_FXSC3AVQGLZIHJGIJUP4CV7WVN": 1
+    },
+    "mutations_by_target": {
+      "customer-123": 0
+    }
+  },
+  "test_id": "TC10"
+}

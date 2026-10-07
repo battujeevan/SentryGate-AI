@@ -1,0 +1,148 @@
+{
+  "test_id": "TC06",
+  "test_name": "Authorization replay",
+  "kind": "attack",
+  "objective": "An authorization that has been executed must not execute again.",
+  "method": [
+    "agent-a sends update_customer(customer-123) through ingress; it executes once.",
+    "The attacker starts the workflow again directly in Temporal with the same decision, proposal and workflow ID.",
+    "The attacker starts it with the same decision under a different workflow ID.",
+    "agent-a re-sends the identical HTTP request (same proposal ID and content) to ingress after the first workflow has closed."
+  ],
+  "expected": "Both decision replays are refused (EXECUTION_CLAIM_REJECTED; INGRESS_DECISION_IDENTITY_MISMATCH). The re-sent HTTP request must not execute a second time. Exactly one mutation.",
+  "status": "FAILED",
+  "f5_result": "NOT_TESTED",
+  "f5_provider": "mock (no F5 in path)",
+  "f5_observation_source": "MOCK",
+  "sentrygate_result": "DID_NOT_BLOCK",
+  "infrastructure_result": "MUTATED",
+  "mutation_count": 2,
+  "expected_mutation_count": 1,
+  "tool_invocations": 2,
+  "checks": [
+    {
+      "name": "execution claim on the executed decision",
+      "expected": "COMPLETED",
+      "observed": "COMPLETED",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: agent-a update_customer(customer-123)",
+      "expected": "EXECUTED",
+      "observed": "EXECUTED workflow completed",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: replay the executed decision, same workflow ID",
+      "expected": "REFUSED_AT_EXECUTION_BOUNDARY (EXECUTION_CLAIM_REJECTED)",
+      "observed": "REFUSED_AT_EXECUTION_BOUNDARY EXECUTION_CLAIM_REJECTED INGRESS_DECISION_ALREADY_CLAIMED",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: replay the executed decision, different workflow ID",
+      "expected": "REFUSED_AT_EXECUTION_BOUNDARY (INGRESS_DECISION_IDENTITY_MISMATCH)",
+      "observed": "REFUSED_AT_EXECUTION_BOUNDARY INGRESS_DECISION_INVALID INGRESS_DECISION_IDENTITY_MISMATCH",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: agent-a re-sends the identical HTTP request after completion",
+      "expected": "any refusal (not EXECUTED)",
+      "observed": "EXECUTED workflow completed",
+      "result": "FAIL"
+    },
+    {
+      "name": "infrastructure mutation count (test MCP server database)",
+      "expected": "1",
+      "observed": "2",
+      "result": "FAIL"
+    },
+    {
+      "name": "no idempotency key mutated the target more than once",
+      "expected": "none",
+      "observed": "none",
+      "result": "PASS"
+    }
+  ],
+  "attempts": [
+    {
+      "label": "agent-a update_customer(customer-123)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "sentrygate_outcome": "EXECUTED",
+      "sentrygate_detail": "workflow completed",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    },
+    {
+      "label": "replay the executed decision, same workflow ID",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal StartWorkflowExecution",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "EXECUTION_CLAIM_REJECTED INGRESS_DECISION_ALREADY_CLAIMED"
+    },
+    {
+      "label": "replay the executed decision, different workflow ID",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal StartWorkflowExecution",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "INGRESS_DECISION_INVALID INGRESS_DECISION_IDENTITY_MISMATCH"
+    },
+    {
+      "label": "agent-a re-sends the identical HTTP request after completion",
+      "role": "attack",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "sentrygate_outcome": "EXECUTED",
+      "sentrygate_detail": "workflow completed",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    }
+  ],
+  "notes": [
+    "F5 result NOT_TESTED: no F5 component was in the request path; the F5 observation provider was \"mock (no F5 in path)\" and returned placeholders only."
+  ],
+  "limitations": [
+    "SentryGate documents (INTEGRATION.md) that re-submitting a request after its workflow has closed creates a new decision and executes again; there is no request-level replay protection at ingress. This test checks that behavior rather than assuming it."
+  ],
+  "environment": {
+    "arch": "amd64",
+    "go_version": "go1.27.0",
+    "ingress_path": "test agent -> SentryGate proxy (direct, no gateway)",
+    "mcp_server": "validation/cmd/mcp-test-server (disposable SQLite database per test)",
+    "os": "windows",
+    "sentrygate_worker_adapter": "mcp (workflows.MCPAdapter, SENTRYGATE_ADAPTER=mcp)",
+    "source_revision": "a2fa280747b81037ca4769997b3c86999b9421b8 (with uncommitted changes)",
+    "temporal_mode": "Temporal CLI dev server (server start-dev, in-memory), started by the harness",
+    "temporal_version": "temporal version 1.9.1 (Server 1.32.0, UI 2.54.1)",
+    "worker_mcp_path": "SentryGate worker -> test MCP server (direct, no gateway)"
+  },
+  "started_at": "2026-10-06T08:41:54Z",
+  "finished_at": "2026-10-06T08:41:55Z",
+  "evidence_path": "validation/evidence/TC06",
+  "files": [
+    "after-state.json",
+    "authorization.json",
+    "before-state.json",
+    "execution-count.json",
+    "execution.json",
+    "infrastructure-state.json",
+    "request.json",
+    "sentrygate-decision.json",
+    "test-result.json"
+  ]
+}

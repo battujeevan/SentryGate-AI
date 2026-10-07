@@ -243,7 +243,7 @@ func SentryGateSagaWorkflow(ctx workflow.Context, req contracts.ExecutionRequest
 	// up now depends on whether the fence committed.
 	dispatching = true
 	auditCtx = claimCtx
-	dreq := contracts.DispatchRequest{IdempotencyKey: decision.ExecutionKey(req.IngressDecisionID), Proposal: prop}
+	dreq := contracts.DispatchRequest{IdempotencyKey: decision.ExecutionKey(req.IngressDecisionID), AgentID: req.AgentID, Proposal: prop}
 	fenced := contracts.FencedDispatch{DecisionID: req.IngressDecisionID, Token: token, Dispatch: dreq}
 	var outcome contracts.DispatchOutcome
 	var auditErr error

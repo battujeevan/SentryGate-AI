@@ -1,0 +1,21 @@
+{
+  "counts": {
+    "invocations": 2,
+    "applied": 2,
+    "mutations": 2,
+    "invocations_by_tool": {
+      "update_customer": 2
+    },
+    "invocations_by_target": {
+      "customer-123": 2
+    },
+    "invocations_by_idempotency_key": {
+      "sentrygate.exec.v1:dec_6U5JCA7XCI4LJ5JYDC4XV5WQXE": 1,
+      "sentrygate.exec.v1:dec_KVDL2PVZC22IT3YZMG3YNHDFPK": 1
+    },
+    "mutations_by_target": {
+      "customer-123": 2
+    }
+  },
+  "test_id": "TC06"
+}

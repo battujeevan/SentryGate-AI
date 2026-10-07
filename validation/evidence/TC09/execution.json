@@ -1,0 +1,38 @@
+{
+  "counts": {
+    "invocations": 1,
+    "applied": 1,
+    "mutations": 1,
+    "invocations_by_tool": {
+      "update_customer": 1
+    },
+    "invocations_by_target": {
+      "customer-lost-response": 1
+    },
+    "invocations_by_idempotency_key": {
+      "sentrygate.exec.v1:dec_Z5YOXIQJWDQXANZ2WGDQ2TIE4X": 1
+    },
+    "mutations_by_target": {
+      "customer-lost-response": 1
+    }
+  },
+  "executions": [
+    {
+      "execution_id": "x000001",
+      "timestamp": "2026-10-06T08:42:03.1908478Z",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-lost-response",
+      "request": "{\"customer_id\":\"customer-lost-response\",\"tier\":\"gold\"}",
+      "request_hash": "6d87a104d1ce8086205fa6c40cc0dfed70d3a2faba77443999dc0f66a5513e5f",
+      "sentrygate_request_hash": "da5ec1d0ae8142cb0e418acaa5c3ed1210f30f37724a4bfed6cd8ac03f91074a",
+      "idempotency_key": "sentrygate.exec.v1:dec_Z5YOXIQJWDQXANZ2WGDQ2TIE4X",
+      "proposal_id": "TC09-084202-lost",
+      "result": "APPLIED",
+      "detail": "customer updated",
+      "mutation_count": 1
+    }
+  ],
+  "note": "Every tools/call that reached the test MCP server, in order. The server never deduplicates.",
+  "test_id": "TC09"
+}

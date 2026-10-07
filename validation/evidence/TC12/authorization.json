@@ -1,0 +1,295 @@
+{
+  "f5_observation_source": "MOCK",
+  "f5_observations": [
+    {
+      "request_label": "agent-b update_customer(customer-123) via ingress",
+      "role": "attack",
+      "correlation": {
+        "test_id": "TC12",
+        "request_label": "agent-b update_customer(customer-123) via ingress",
+        "proposal_id": "TC12-084206-update",
+        "agent_id": "agent-b",
+        "tool": "update_customer",
+        "target": "customer-123",
+        "sent_at": "2026-10-06T08:42:06.4712536Z"
+      },
+      "observation": {
+        "source": "MOCK",
+        "provider": "mock (no F5 in path)",
+        "request_id": "MOCK",
+        "agent_identity": "MOCK",
+        "tool": "MOCK",
+        "target": "MOCK",
+        "authorization_decision": "NOT_OBSERVED",
+        "policy_identifier": "MOCK",
+        "timestamp": "MOCK",
+        "audit_event": "MOCK",
+        "downstream_request_reference": "MOCK",
+        "raw_evidence_reference": "MOCK",
+        "mocked_fields": [
+          "request_id",
+          "agent_identity",
+          "tool",
+          "target",
+          "authorization_decision",
+          "policy_identifier",
+          "timestamp",
+          "audit_event",
+          "downstream_request_reference",
+          "raw_evidence_reference"
+        ],
+        "note": "No F5 component was in the request path. This is a placeholder, not an F5 observation."
+      }
+    },
+    {
+      "request_label": "agent-b export_customer(customer-123) via ingress",
+      "role": "attack",
+      "correlation": {
+        "test_id": "TC12",
+        "request_label": "agent-b export_customer(customer-123) via ingress",
+        "proposal_id": "TC12-084206-export",
+        "agent_id": "agent-b",
+        "tool": "export_customer",
+        "target": "customer-123",
+        "sent_at": "2026-10-06T08:42:06.4734487Z"
+      },
+      "observation": {
+        "source": "MOCK",
+        "provider": "mock (no F5 in path)",
+        "request_id": "MOCK",
+        "agent_identity": "MOCK",
+        "tool": "MOCK",
+        "target": "MOCK",
+        "authorization_decision": "NOT_OBSERVED",
+        "policy_identifier": "MOCK",
+        "timestamp": "MOCK",
+        "audit_event": "MOCK",
+        "downstream_request_reference": "MOCK",
+        "raw_evidence_reference": "MOCK",
+        "mocked_fields": [
+          "request_id",
+          "agent_identity",
+          "tool",
+          "target",
+          "authorization_decision",
+          "policy_identifier",
+          "timestamp",
+          "audit_event",
+          "downstream_request_reference",
+          "raw_evidence_reference"
+        ],
+        "note": "No F5 component was in the request path. This is a placeholder, not an F5 observation."
+      }
+    },
+    {
+      "request_label": "agent-b delete_customer(customer-123) via ingress",
+      "role": "attack",
+      "correlation": {
+        "test_id": "TC12",
+        "request_label": "agent-b delete_customer(customer-123) via ingress",
+        "proposal_id": "TC12-084206-delete",
+        "agent_id": "agent-b",
+        "tool": "delete_customer",
+        "target": "customer-123",
+        "sent_at": "2026-10-06T08:42:06.4750058Z"
+      },
+      "observation": {
+        "source": "MOCK",
+        "provider": "mock (no F5 in path)",
+        "request_id": "MOCK",
+        "agent_identity": "MOCK",
+        "tool": "MOCK",
+        "target": "MOCK",
+        "authorization_decision": "NOT_OBSERVED",
+        "policy_identifier": "MOCK",
+        "timestamp": "MOCK",
+        "audit_event": "MOCK",
+        "downstream_request_reference": "MOCK",
+        "raw_evidence_reference": "MOCK",
+        "mocked_fields": [
+          "request_id",
+          "agent_identity",
+          "tool",
+          "target",
+          "authorization_decision",
+          "policy_identifier",
+          "timestamp",
+          "audit_event",
+          "downstream_request_reference",
+          "raw_evidence_reference"
+        ],
+        "note": "No F5 component was in the request path. This is a placeholder, not an F5 observation."
+      }
+    },
+    {
+      "request_label": "agent-b drop_database(customer-123) via ingress",
+      "role": "attack",
+      "correlation": {
+        "test_id": "TC12",
+        "request_label": "agent-b drop_database(customer-123) via ingress",
+        "proposal_id": "TC12-084206-drop",
+        "agent_id": "agent-b",
+        "tool": "drop_database",
+        "target": "customer-123",
+        "sent_at": "2026-10-06T08:42:06.476729Z"
+      },
+      "observation": {
+        "source": "MOCK",
+        "provider": "mock (no F5 in path)",
+        "request_id": "MOCK",
+        "agent_identity": "MOCK",
+        "tool": "MOCK",
+        "target": "MOCK",
+        "authorization_decision": "NOT_OBSERVED",
+        "policy_identifier": "MOCK",
+        "timestamp": "MOCK",
+        "audit_event": "MOCK",
+        "downstream_request_reference": "MOCK",
+        "raw_evidence_reference": "MOCK",
+        "mocked_fields": [
+          "request_id",
+          "agent_identity",
+          "tool",
+          "target",
+          "authorization_decision",
+          "policy_identifier",
+          "timestamp",
+          "audit_event",
+          "downstream_request_reference",
+          "raw_evidence_reference"
+        ],
+        "note": "No F5 component was in the request path. This is a placeholder, not an F5 observation."
+      }
+    },
+    {
+      "request_label": "agent-b read_customer(customer-123) (authorized, then held)",
+      "role": "legitimate",
+      "correlation": {
+        "test_id": "TC12",
+        "request_label": "agent-b read_customer(customer-123) (authorized, then held)",
+        "proposal_id": "TC12-084206-read",
+        "agent_id": "agent-b",
+        "tool": "read_customer",
+        "target": "customer-123",
+        "sent_at": "2026-10-06T08:42:06.4811129Z"
+      },
+      "observation": {
+        "source": "MOCK",
+        "provider": "mock (no F5 in path)",
+        "request_id": "MOCK",
+        "agent_identity": "MOCK",
+        "tool": "MOCK",
+        "target": "MOCK",
+        "authorization_decision": "NOT_OBSERVED",
+        "policy_identifier": "MOCK",
+        "timestamp": "MOCK",
+        "audit_event": "MOCK",
+        "downstream_request_reference": "MOCK",
+        "raw_evidence_reference": "MOCK",
+        "mocked_fields": [
+          "request_id",
+          "agent_identity",
+          "tool",
+          "target",
+          "authorization_decision",
+          "policy_identifier",
+          "timestamp",
+          "audit_event",
+          "downstream_request_reference",
+          "raw_evidence_reference"
+        ],
+        "note": "No F5 component was in the request path. This is a placeholder, not an F5 observation."
+      }
+    }
+  ],
+  "f5_provider": "mock (no F5 in path)",
+  "f5_result": "NOT_TESTED",
+  "sentrygate_ingress_decisions": [
+    {
+      "decision_id": "dec_IOGKHOO3BJPWGRQANSFK5DLIMT",
+      "stage": "INGRESS",
+      "agent_id": "agent-b",
+      "command": "DELETE_CUSTOMER",
+      "target_id": "customer-123",
+      "environment": "test",
+      "verdict": "DENY",
+      "reasons": [
+        "COMMAND_NOT_PERMITTED_FOR_AGENT"
+      ],
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "9ea95ed6013edbf780140ea8c918548827ff272f9c0642ef323855cd3ac31ef3",
+      "workflow_id": "",
+      "recorded_at": "2026-10-06T08:42:06.4750058Z"
+    },
+    {
+      "decision_id": "dec_PLYANYAXRH6XPNNXKMSUZ537LB",
+      "stage": "INGRESS",
+      "agent_id": "agent-b",
+      "command": "DROP_DATABASE",
+      "target_id": "customer-123",
+      "environment": "test",
+      "verdict": "DENY",
+      "reasons": [
+        "COMMAND_UNKNOWN"
+      ],
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "e2ce1e8afe1737d70b4e50b84b1cc2c851f3f711a18693b3a1371a38d3a3d50b",
+      "workflow_id": "",
+      "recorded_at": "2026-10-06T08:42:06.476729Z"
+    },
+    {
+      "decision_id": "dec_HK2PXKQXIJ4VDA6G2BTBTPGQTK",
+      "stage": "INGRESS",
+      "agent_id": "agent-b",
+      "command": "EXPORT_CUSTOMER",
+      "target_id": "customer-123",
+      "environment": "test",
+      "verdict": "DENY",
+      "reasons": [
+        "COMMAND_NOT_PERMITTED_FOR_AGENT"
+      ],
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "80f18fc6506db24806dfb0d2a5cedebb1eb5f2e1e3e8b06fb5dc72b8cbcf4006",
+      "workflow_id": "",
+      "recorded_at": "2026-10-06T08:42:06.4734487Z"
+    },
+    {
+      "decision_id": "dec_JAUP3LQSWYZM2ILVV7REZDNZYF",
+      "stage": "INGRESS",
+      "agent_id": "agent-b",
+      "command": "READ_CUSTOMER",
+      "target_id": "customer-123",
+      "environment": "test",
+      "verdict": "ALLOW",
+      "reasons": [
+        "ENVIRONMENT_ALLOWED"
+      ],
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "98e9e9e5b697f90f768a4a6bc6f8b653eee189915c31ff7092bec8d03253ff17",
+      "workflow_id": "saga-TC12-084206-read",
+      "recorded_at": "2026-10-06T08:42:06.4811129Z"
+    },
+    {
+      "decision_id": "dec_3MBK2MCNLS2CWTTAOD6GJGFYRX",
+      "stage": "INGRESS",
+      "agent_id": "agent-b",
+      "command": "UPDATE_CUSTOMER",
+      "target_id": "customer-123",
+      "environment": "test",
+      "verdict": "DENY",
+      "reasons": [
+        "COMMAND_NOT_PERMITTED_FOR_AGENT"
+      ],
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "60308fb863c6b3363a6de81453ed2a7f2bb8cad77e913ea7ceaa0fbe94a0bbe8",
+      "workflow_id": "",
+      "recorded_at": "2026-10-06T08:42:06.4717724Z"
+    }
+  ],
+  "test_id": "TC12"
+}

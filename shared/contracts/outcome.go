@@ -55,9 +55,12 @@ func (o DispatchOutcome) Checked() DispatchOutcome {
 // DispatchRequest is what the workflow passes to an infrastructure adapter for
 // both dispatch and reconciliation. IdempotencyKey identifies the single
 // execution authorized by one ingress decision; it is the same for every
-// attempt, retry and reconciliation of that execution.
+// attempt, retry and reconciliation of that execution. AgentID is the agent
+// the ingress decision was recorded for; the workflow has verified it against
+// that record before dispatch.
 type DispatchRequest struct {
 	IdempotencyKey string        `json:"idempotency_key"`
+	AgentID        string        `json:"agent_id,omitempty"`
 	Proposal       AgentProposal `json:"proposal"`
 }
 

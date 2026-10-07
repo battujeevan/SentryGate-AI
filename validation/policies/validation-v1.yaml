@@ -1,0 +1,36 @@
+# Validation policy V1. Used by validation/cases; not a deployment policy.
+# Identities and permissions only: agent keys are generated per test stack.
+version: "validation-v1"
+max_parallel_tasks: 16
+
+environments:
+  test: allow
+
+# MCP tools of the test server, as SentryGate commands (tool = lower-case command).
+commands:
+  - READ_CUSTOMER
+  - UPDATE_CUSTOMER
+  - EXPORT_CUSTOMER
+  - DELETE_CUSTOMER
+
+agents:
+  - id: agent-a
+    commands: [READ_CUSTOMER, UPDATE_CUSTOMER]
+  - id: agent-b
+    commands: [READ_CUSTOMER]
+
+targets:
+  - id: customer-123
+    environment: test
+    protected: false
+  - id: customer-456
+    environment: test
+    protected: false
+  # The test MCP server applies calls to this target and then drops the response.
+  - id: customer-lost-response
+    environment: test
+    protected: false
+  # The test MCP server holds calls to this target until the gate is released.
+  - id: customer-gated
+    environment: test
+    protected: false

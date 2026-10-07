@@ -1,0 +1,163 @@
+{
+  "test_id": "TC03",
+  "test_name": "Target substitution",
+  "kind": "attack",
+  "objective": "A request authorized for one target must not execute against another target.",
+  "method": [
+    "Ingress: agent-a requests update_customer(customer-999), an unregistered target.",
+    "Execution boundary: agent-a obtains an unused ALLOW for update_customer(customer-123); the attacker starts the workflow with target customer-456 and a recomputed request hash.",
+    "Argument smuggling: agent-a sends update_customer(customer-123) through ingress with customer_id=customer-456 inside the arguments (the MCP server's target argument)."
+  ],
+  "expected": "Ingress denies the unregistered target (TARGET_UNREGISTERED). The substituted run fails INGRESS_DECISION_HASH_MISMATCH. The smuggled call is allowed at ingress (the policy does not inspect arguments) but the MCP adapter refuses to send a call whose arguments set the target argument, so the run fails DISPATCH_FAILED with no tools/call sent. No mutation on any customer.",
+  "status": "VERIFIED",
+  "f5_result": "NOT_TESTED",
+  "f5_provider": "mock (no F5 in path)",
+  "f5_observation_source": "MOCK",
+  "sentrygate_result": "BLOCKED_EXECUTION",
+  "infrastructure_result": "NOT_EXECUTED",
+  "mutation_count": 0,
+  "expected_mutation_count": 0,
+  "tool_invocations": 0,
+  "checks": [
+    {
+      "name": "customer-123 record unchanged",
+      "expected": "version=1 deleted=false",
+      "observed": "version=1 deleted=false",
+      "result": "PASS"
+    },
+    {
+      "name": "customer-456 record unchanged",
+      "expected": "version=1 deleted=false",
+      "observed": "version=1 deleted=false",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: agent-a update_customer(customer-999) via ingress",
+      "expected": "DENIED_AT_INGRESS (TARGET_UNREGISTERED)",
+      "observed": "DENIED_AT_INGRESS verdict=DENY reasons=TARGET_UNREGISTERED decision_id=dec_4QNVV35BCE3SJW4IJOLZT4XXJ7",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: agent-a update_customer(customer-123) (authorized, then held)",
+      "expected": "TERMINATED_BEFORE_EXECUTION",
+      "observed": "TERMINATED_BEFORE_EXECUTION run terminated",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: substitute target customer-456 for customer-123",
+      "expected": "REFUSED_AT_EXECUTION_BOUNDARY (INGRESS_DECISION_HASH_MISMATCH)",
+      "observed": "REFUSED_AT_EXECUTION_BOUNDARY INGRESS_DECISION_INVALID INGRESS_DECISION_HASH_MISMATCH",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: agent-a update_customer(customer-123) with customer_id=customer-456 in the arguments",
+      "expected": "REFUSED_BY_ADAPTER (DISPATCH_FAILED)",
+      "observed": "REFUSED_BY_ADAPTER DISPATCH_FAILED: no tools/call reached the MCP server; dispatch failed: mcp: not sent: payload sets the target argument \"customer_id\"; the target comes only from the authorized proposal (type: DISPATCH_FAILED, retryable: false)",
+      "result": "PASS"
+    },
+    {
+      "name": "infrastructure mutation count (test MCP server database)",
+      "expected": "0",
+      "observed": "0",
+      "result": "PASS"
+    },
+    {
+      "name": "no idempotency key mutated the target more than once",
+      "expected": "none",
+      "observed": "none",
+      "result": "PASS"
+    }
+  ],
+  "attempts": [
+    {
+      "label": "agent-a update_customer(customer-999) via ingress",
+      "role": "attack",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-999",
+      "sentrygate_outcome": "DENIED_AT_INGRESS",
+      "sentrygate_detail": "verdict=DENY reasons=TARGET_UNREGISTERED decision_id=dec_4QNVV35BCE3SJW4IJOLZT4XXJ7",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    },
+    {
+      "label": "agent-a update_customer(customer-123) (authorized, then held)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "sentrygate_outcome": "TERMINATED_BEFORE_EXECUTION",
+      "sentrygate_detail": "run terminated",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    },
+    {
+      "label": "setup: terminate the authorized run before any worker runs it",
+      "role": "setup",
+      "path": "execution-boundary",
+      "action": "Temporal TerminateWorkflowExecution",
+      "agent_id": "",
+      "sentrygate_outcome": "N/A (not an execution attempt)"
+    },
+    {
+      "label": "substitute target customer-456 for customer-123",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal StartWorkflowExecution",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-456",
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "INGRESS_DECISION_INVALID INGRESS_DECISION_HASH_MISMATCH"
+    },
+    {
+      "label": "agent-a update_customer(customer-123) with customer_id=customer-456 in the arguments",
+      "role": "attack",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "sentrygate_outcome": "REFUSED_BY_ADAPTER",
+      "sentrygate_detail": "DISPATCH_FAILED: no tools/call reached the MCP server; dispatch failed: mcp: not sent: payload sets the target argument \"customer_id\"; the target comes only from the authorized proposal (type: DISPATCH_FAILED, retryable: false)",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    }
+  ],
+  "notes": [
+    "F5 result NOT_TESTED: no F5 component was in the request path; the F5 observation provider was \"mock (no F5 in path)\" and returned placeholders only."
+  ],
+  "limitations": [
+    "SentryGate's policy does not inspect tool arguments; argument smuggling is stopped by the MCP adapter's refusal to let arguments set the target argument, not by policy."
+  ],
+  "environment": {
+    "arch": "amd64",
+    "go_version": "go1.27.0",
+    "ingress_path": "test agent -> SentryGate proxy (direct, no gateway)",
+    "mcp_server": "validation/cmd/mcp-test-server (disposable SQLite database per test)",
+    "os": "windows",
+    "sentrygate_worker_adapter": "mcp (workflows.MCPAdapter, SENTRYGATE_ADAPTER=mcp)",
+    "source_revision": "a2fa280747b81037ca4769997b3c86999b9421b8 (with uncommitted changes)",
+    "temporal_mode": "Temporal CLI dev server (server start-dev, in-memory), started by the harness",
+    "temporal_version": "temporal version 1.9.1 (Server 1.32.0, UI 2.54.1)",
+    "worker_mcp_path": "SentryGate worker -> test MCP server (direct, no gateway)"
+  },
+  "started_at": "2026-10-06T08:41:50Z",
+  "finished_at": "2026-10-06T08:41:51Z",
+  "evidence_path": "validation/evidence/TC03",
+  "files": [
+    "after-state.json",
+    "authorization.json",
+    "before-state.json",
+    "execution-count.json",
+    "execution.json",
+    "infrastructure-state.json",
+    "request.json",
+    "sentrygate-decision.json",
+    "test-result.json"
+  ]
+}

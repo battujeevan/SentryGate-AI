@@ -1,0 +1,41 @@
+{
+  "note": "API keys are never recorded. path=gateway is POST /v1/intercept; path=execution-boundary is direct Temporal access.",
+  "requests": [
+    {
+      "label": "agent-a update_customer(customer-lost-response)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "proposal": {
+        "id": "TC09-084202-lost",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-lost-response",
+        "payload": "{\"tier\":\"gold\"}"
+      },
+      "workflow_id": "saga-TC09-084202-lost",
+      "run_id": "01a11060-840d-7abb-8f74-6088c4e44d82",
+      "sent_at": "2026-10-06T08:42:03.1461465Z",
+      "http_status": 200,
+      "response": {
+        "status": "accepted",
+        "verdict": "ALLOW",
+        "reasons": [
+          "ENVIRONMENT_ALLOWED"
+        ],
+        "decision_id": "dec_Z5YOXIQJWDQXANZ2WGDQ2TIE4X",
+        "proposal_id": "TC09-084202-lost",
+        "workflow_id": "saga-TC09-084202-lost",
+        "run_id": "01a11060-840d-7abb-8f74-6088c4e44d82"
+      },
+      "workflow_outcome": {
+        "workflow_id": "saga-TC09-084202-lost",
+        "run_id": "01a11060-840d-7abb-8f74-6088c4e44d82",
+        "status": "COMPLETED"
+      },
+      "sentrygate_outcome": "EXECUTED",
+      "sentrygate_detail": "workflow completed"
+    }
+  ],
+  "test_id": "TC09"
+}

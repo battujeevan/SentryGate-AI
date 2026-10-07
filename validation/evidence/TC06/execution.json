@@ -1,0 +1,54 @@
+{
+  "counts": {
+    "invocations": 2,
+    "applied": 2,
+    "mutations": 2,
+    "invocations_by_tool": {
+      "update_customer": 2
+    },
+    "invocations_by_target": {
+      "customer-123": 2
+    },
+    "invocations_by_idempotency_key": {
+      "sentrygate.exec.v1:dec_6U5JCA7XCI4LJ5JYDC4XV5WQXE": 1,
+      "sentrygate.exec.v1:dec_KVDL2PVZC22IT3YZMG3YNHDFPK": 1
+    },
+    "mutations_by_target": {
+      "customer-123": 2
+    }
+  },
+  "executions": [
+    {
+      "execution_id": "x000001",
+      "timestamp": "2026-10-06T08:41:54.7089597Z",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "request": "{\"customer_id\":\"customer-123\",\"tier\":\"silver\"}",
+      "request_hash": "6e35827d422ab24069d1f3b9b21d263e236e0e1f50b72c799df176cc8d7d9df3",
+      "sentrygate_request_hash": "7bc92db6171a43e3ba669ea765cdba50e8010316a6259920b1368ae5e9d321ed",
+      "idempotency_key": "sentrygate.exec.v1:dec_6U5JCA7XCI4LJ5JYDC4XV5WQXE",
+      "proposal_id": "TC06-084154-update",
+      "result": "APPLIED",
+      "detail": "customer updated",
+      "mutation_count": 1
+    },
+    {
+      "execution_id": "x000002",
+      "timestamp": "2026-10-06T08:41:54.9965849Z",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "request": "{\"customer_id\":\"customer-123\",\"tier\":\"silver\"}",
+      "request_hash": "6e35827d422ab24069d1f3b9b21d263e236e0e1f50b72c799df176cc8d7d9df3",
+      "sentrygate_request_hash": "7bc92db6171a43e3ba669ea765cdba50e8010316a6259920b1368ae5e9d321ed",
+      "idempotency_key": "sentrygate.exec.v1:dec_KVDL2PVZC22IT3YZMG3YNHDFPK",
+      "proposal_id": "TC06-084154-update",
+      "result": "APPLIED",
+      "detail": "customer updated",
+      "mutation_count": 1
+    }
+  ],
+  "note": "Every tools/call that reached the test MCP server, in order. The server never deduplicates.",
+  "test_id": "TC06"
+}

@@ -1,0 +1,124 @@
+{
+  "f5_observation_source": "MOCK",
+  "f5_observations": [
+    {
+      "request_label": "agent-a read_customer(customer-123)",
+      "role": "legitimate",
+      "correlation": {
+        "test_id": "TC01",
+        "request_label": "agent-a read_customer(customer-123)",
+        "proposal_id": "TC01-084148-read",
+        "agent_id": "agent-a",
+        "tool": "read_customer",
+        "target": "customer-123",
+        "sent_at": "2026-10-06T08:41:48.6316293Z"
+      },
+      "observation": {
+        "source": "MOCK",
+        "provider": "mock (no F5 in path)",
+        "request_id": "MOCK",
+        "agent_identity": "MOCK",
+        "tool": "MOCK",
+        "target": "MOCK",
+        "authorization_decision": "NOT_OBSERVED",
+        "policy_identifier": "MOCK",
+        "timestamp": "MOCK",
+        "audit_event": "MOCK",
+        "downstream_request_reference": "MOCK",
+        "raw_evidence_reference": "MOCK",
+        "mocked_fields": [
+          "request_id",
+          "agent_identity",
+          "tool",
+          "target",
+          "authorization_decision",
+          "policy_identifier",
+          "timestamp",
+          "audit_event",
+          "downstream_request_reference",
+          "raw_evidence_reference"
+        ],
+        "note": "No F5 component was in the request path. This is a placeholder, not an F5 observation."
+      }
+    },
+    {
+      "request_label": "agent-a update_customer(customer-123, email)",
+      "role": "legitimate",
+      "correlation": {
+        "test_id": "TC01",
+        "request_label": "agent-a update_customer(customer-123, email)",
+        "proposal_id": "TC01-084148-update",
+        "agent_id": "agent-a",
+        "tool": "update_customer",
+        "target": "customer-123",
+        "sent_at": "2026-10-06T08:41:48.7033542Z"
+      },
+      "observation": {
+        "source": "MOCK",
+        "provider": "mock (no F5 in path)",
+        "request_id": "MOCK",
+        "agent_identity": "MOCK",
+        "tool": "MOCK",
+        "target": "MOCK",
+        "authorization_decision": "NOT_OBSERVED",
+        "policy_identifier": "MOCK",
+        "timestamp": "MOCK",
+        "audit_event": "MOCK",
+        "downstream_request_reference": "MOCK",
+        "raw_evidence_reference": "MOCK",
+        "mocked_fields": [
+          "request_id",
+          "agent_identity",
+          "tool",
+          "target",
+          "authorization_decision",
+          "policy_identifier",
+          "timestamp",
+          "audit_event",
+          "downstream_request_reference",
+          "raw_evidence_reference"
+        ],
+        "note": "No F5 component was in the request path. This is a placeholder, not an F5 observation."
+      }
+    }
+  ],
+  "f5_provider": "mock (no F5 in path)",
+  "f5_result": "NOT_TESTED",
+  "sentrygate_ingress_decisions": [
+    {
+      "decision_id": "dec_3374BWA7WJCZRCOQ4K24Z3PGBF",
+      "stage": "INGRESS",
+      "agent_id": "agent-a",
+      "command": "READ_CUSTOMER",
+      "target_id": "customer-123",
+      "environment": "test",
+      "verdict": "ALLOW",
+      "reasons": [
+        "ENVIRONMENT_ALLOWED"
+      ],
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "0cfd35e2f42fdf8b3b4f43a770130a2a1a0f762feb6055847c43c578c61c3ff9",
+      "workflow_id": "saga-TC01-084148-read",
+      "recorded_at": "2026-10-06T08:41:48.6316293Z"
+    },
+    {
+      "decision_id": "dec_BZKGHFGADMCI6AIULBBYT7HL22",
+      "stage": "INGRESS",
+      "agent_id": "agent-a",
+      "command": "UPDATE_CUSTOMER",
+      "target_id": "customer-123",
+      "environment": "test",
+      "verdict": "ALLOW",
+      "reasons": [
+        "ENVIRONMENT_ALLOWED"
+      ],
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "20e6b40452708819778ea7d85a1fc72e54b0bbc62d6da508cf4d9d83d25fcac3",
+      "workflow_id": "saga-TC01-084148-update",
+      "recorded_at": "2026-10-06T08:41:48.7033542Z"
+    }
+  ],
+  "test_id": "TC01"
+}

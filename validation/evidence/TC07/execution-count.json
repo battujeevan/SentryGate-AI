@@ -1,0 +1,24 @@
+{
+  "counts": {
+    "invocations": 5,
+    "applied": 5,
+    "mutations": 5,
+    "invocations_by_tool": {
+      "update_customer": 5
+    },
+    "invocations_by_target": {
+      "customer-123": 5
+    },
+    "invocations_by_idempotency_key": {
+      "sentrygate.exec.v1:dec_24DMKNVRPVC4MXOXMYO2DBDOYT": 1,
+      "sentrygate.exec.v1:dec_6AH3DXYSMSIZZWMX4WHN7C3NLQ": 1,
+      "sentrygate.exec.v1:dec_CCE6VMYIAC2DHEYCFGWMOV552E": 1,
+      "sentrygate.exec.v1:dec_GKVM4WMSQBZO5ABA4JQPN7GD4M": 1,
+      "sentrygate.exec.v1:dec_JTAJODFFQGQ475WNWPIXSUGCEP": 1
+    },
+    "mutations_by_target": {
+      "customer-123": 5
+    }
+  },
+  "test_id": "TC07"
+}

@@ -1,0 +1,71 @@
+{
+  "read_error": "",
+  "state": {
+    "customers": [
+      {
+        "customer_id": "customer-123",
+        "name": "Ada Example",
+        "email": "ada@example.test",
+        "tier": "standard",
+        "deleted": false,
+        "version": 1
+      },
+      {
+        "customer_id": "customer-456",
+        "name": "Grace Example",
+        "email": "grace@example.test",
+        "tier": "gold",
+        "deleted": false,
+        "version": 1
+      },
+      {
+        "customer_id": "customer-gated",
+        "name": "Gated Target",
+        "email": "gated@example.test",
+        "tier": "standard",
+        "deleted": false,
+        "version": 1
+      },
+      {
+        "customer_id": "customer-lost-response",
+        "name": "Lost Response",
+        "email": "lost@example.test",
+        "tier": "gold",
+        "deleted": false,
+        "version": 2
+      }
+    ],
+    "executions": [
+      {
+        "execution_id": "x000001",
+        "timestamp": "2026-10-06T08:42:03.1908478Z",
+        "agent_id": "agent-a",
+        "tool": "update_customer",
+        "target": "customer-lost-response",
+        "request": "{\"customer_id\":\"customer-lost-response\",\"tier\":\"gold\"}",
+        "request_hash": "6d87a104d1ce8086205fa6c40cc0dfed70d3a2faba77443999dc0f66a5513e5f",
+        "sentrygate_request_hash": "da5ec1d0ae8142cb0e418acaa5c3ed1210f30f37724a4bfed6cd8ac03f91074a",
+        "idempotency_key": "sentrygate.exec.v1:dec_Z5YOXIQJWDQXANZ2WGDQ2TIE4X",
+        "proposal_id": "TC09-084202-lost",
+        "result": "APPLIED",
+        "detail": "customer updated",
+        "mutation_count": 1
+      }
+    ],
+    "exports": [],
+    "fenced_keys": [],
+    "transport_events": [
+      {
+        "timestamp": "2026-10-06T08:42:03.1926615Z",
+        "event": "RESPONSE_DROPPED",
+        "detail": "tool=update_customer target=customer-lost-response: call processed, connection closed without a response"
+      },
+      {
+        "timestamp": "2026-10-06T08:42:03.2174252Z",
+        "event": "STATUS_QUERY",
+        "detail": "key=sentrygate.exec.v1:dec_Z5YOXIQJWDQXANZ2WGDQ2TIE4X fence=true state=APPLIED"
+      }
+    ]
+  },
+  "test_id": "TC09"
+}

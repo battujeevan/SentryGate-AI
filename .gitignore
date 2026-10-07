@@ -12,3 +12,5 @@ data/
 *.db-shm
 coverage.out
 docs/LINKEDIN_LAUNCH_POST.md
+# Validation harness working files (binaries, databases, process logs)
+validation/run/

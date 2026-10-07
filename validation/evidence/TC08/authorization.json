@@ -1,0 +1,124 @@
+{
+  "f5_observation_source": "MOCK",
+  "f5_observations": [
+    {
+      "request_label": "agent-a update_customer(customer-123)",
+      "role": "legitimate",
+      "correlation": {
+        "test_id": "TC08",
+        "request_label": "agent-a update_customer(customer-123)",
+        "proposal_id": "TC08-084200-update",
+        "agent_id": "agent-a",
+        "tool": "update_customer",
+        "target": "customer-123",
+        "sent_at": "2026-10-06T08:42:00.6445018Z"
+      },
+      "observation": {
+        "source": "MOCK",
+        "provider": "mock (no F5 in path)",
+        "request_id": "MOCK",
+        "agent_identity": "MOCK",
+        "tool": "MOCK",
+        "target": "MOCK",
+        "authorization_decision": "NOT_OBSERVED",
+        "policy_identifier": "MOCK",
+        "timestamp": "MOCK",
+        "audit_event": "MOCK",
+        "downstream_request_reference": "MOCK",
+        "raw_evidence_reference": "MOCK",
+        "mocked_fields": [
+          "request_id",
+          "agent_identity",
+          "tool",
+          "target",
+          "authorization_decision",
+          "policy_identifier",
+          "timestamp",
+          "audit_event",
+          "downstream_request_reference",
+          "raw_evidence_reference"
+        ],
+        "note": "No F5 component was in the request path. This is a placeholder, not an F5 observation."
+      }
+    },
+    {
+      "request_label": "agent-a update_customer(customer-gated)",
+      "role": "legitimate",
+      "correlation": {
+        "test_id": "TC08",
+        "request_label": "agent-a update_customer(customer-gated)",
+        "proposal_id": "TC08-084200-gated",
+        "agent_id": "agent-a",
+        "tool": "update_customer",
+        "target": "customer-gated",
+        "sent_at": "2026-10-06T08:42:00.7772865Z"
+      },
+      "observation": {
+        "source": "MOCK",
+        "provider": "mock (no F5 in path)",
+        "request_id": "MOCK",
+        "agent_identity": "MOCK",
+        "tool": "MOCK",
+        "target": "MOCK",
+        "authorization_decision": "NOT_OBSERVED",
+        "policy_identifier": "MOCK",
+        "timestamp": "MOCK",
+        "audit_event": "MOCK",
+        "downstream_request_reference": "MOCK",
+        "raw_evidence_reference": "MOCK",
+        "mocked_fields": [
+          "request_id",
+          "agent_identity",
+          "tool",
+          "target",
+          "authorization_decision",
+          "policy_identifier",
+          "timestamp",
+          "audit_event",
+          "downstream_request_reference",
+          "raw_evidence_reference"
+        ],
+        "note": "No F5 component was in the request path. This is a placeholder, not an F5 observation."
+      }
+    }
+  ],
+  "f5_provider": "mock (no F5 in path)",
+  "f5_result": "NOT_APPLICABLE",
+  "sentrygate_ingress_decisions": [
+    {
+      "decision_id": "dec_D2E2VIDWW2WLYSUS6SMYUEKTTG",
+      "stage": "INGRESS",
+      "agent_id": "agent-a",
+      "command": "UPDATE_CUSTOMER",
+      "target_id": "customer-gated",
+      "environment": "test",
+      "verdict": "ALLOW",
+      "reasons": [
+        "ENVIRONMENT_ALLOWED"
+      ],
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "8ea35b7003b9a24f7342a7fdf14bf4058d2cfc5b342d4efbe5c314ba4ce0d477",
+      "workflow_id": "saga-TC08-084200-gated",
+      "recorded_at": "2026-10-06T08:42:00.7772865Z"
+    },
+    {
+      "decision_id": "dec_XF6KAZA2M2F4FSUMKWACPMRMO4",
+      "stage": "INGRESS",
+      "agent_id": "agent-a",
+      "command": "UPDATE_CUSTOMER",
+      "target_id": "customer-123",
+      "environment": "test",
+      "verdict": "ALLOW",
+      "reasons": [
+        "ENVIRONMENT_ALLOWED"
+      ],
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "ff5c85a751738327f92ae471aae5baf13099e6d1d1bf7891889279219ac46a01",
+      "workflow_id": "saga-TC08-084200-update",
+      "recorded_at": "2026-10-06T08:42:00.6450598Z"
+    }
+  ],
+  "test_id": "TC08"
+}

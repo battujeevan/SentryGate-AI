@@ -1,0 +1,44 @@
+{
+  "read_error": "",
+  "state": {
+    "customers": [
+      {
+        "customer_id": "customer-123",
+        "name": "Ada Example",
+        "email": "ada@example.test",
+        "tier": "standard",
+        "deleted": false,
+        "version": 1
+      },
+      {
+        "customer_id": "customer-456",
+        "name": "Grace Example",
+        "email": "grace@example.test",
+        "tier": "gold",
+        "deleted": false,
+        "version": 1
+      },
+      {
+        "customer_id": "customer-gated",
+        "name": "Gated Target",
+        "email": "gated@example.test",
+        "tier": "standard",
+        "deleted": false,
+        "version": 1
+      },
+      {
+        "customer_id": "customer-lost-response",
+        "name": "Lost Response",
+        "email": "lost@example.test",
+        "tier": "standard",
+        "deleted": false,
+        "version": 1
+      }
+    ],
+    "executions": [],
+    "exports": [],
+    "fenced_keys": [],
+    "transport_events": []
+  },
+  "test_id": "TC05"
+}

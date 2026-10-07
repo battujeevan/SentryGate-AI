@@ -1,0 +1,187 @@
+{
+  "f5_observation_source": "MOCK",
+  "f5_observations": [
+    {
+      "request_label": "agent-b request body claims agent_id=agent-a",
+      "role": "attack",
+      "correlation": {
+        "test_id": "TC11",
+        "request_label": "agent-b request body claims agent_id=agent-a",
+        "proposal_id": "",
+        "agent_id": "agent-b",
+        "tool": "",
+        "target": "",
+        "sent_at": "2026-10-06T08:42:05.476295Z"
+      },
+      "observation": {
+        "source": "MOCK",
+        "provider": "mock (no F5 in path)",
+        "request_id": "MOCK",
+        "agent_identity": "MOCK",
+        "tool": "MOCK",
+        "target": "MOCK",
+        "authorization_decision": "NOT_OBSERVED",
+        "policy_identifier": "MOCK",
+        "timestamp": "MOCK",
+        "audit_event": "MOCK",
+        "downstream_request_reference": "MOCK",
+        "raw_evidence_reference": "MOCK",
+        "mocked_fields": [
+          "request_id",
+          "agent_identity",
+          "tool",
+          "target",
+          "authorization_decision",
+          "policy_identifier",
+          "timestamp",
+          "audit_event",
+          "downstream_request_reference",
+          "raw_evidence_reference"
+        ],
+        "note": "No F5 component was in the request path. This is a placeholder, not an F5 observation."
+      }
+    },
+    {
+      "request_label": "request as agent-a with a key that is not agent-a's",
+      "role": "attack",
+      "correlation": {
+        "test_id": "TC11",
+        "request_label": "request as agent-a with a key that is not agent-a's",
+        "proposal_id": "TC11-084205-badkey",
+        "agent_id": "agent-a (wrong key)",
+        "tool": "update_customer",
+        "target": "customer-123",
+        "sent_at": "2026-10-06T08:42:05.4768227Z"
+      },
+      "observation": {
+        "source": "MOCK",
+        "provider": "mock (no F5 in path)",
+        "request_id": "MOCK",
+        "agent_identity": "MOCK",
+        "tool": "MOCK",
+        "target": "MOCK",
+        "authorization_decision": "NOT_OBSERVED",
+        "policy_identifier": "MOCK",
+        "timestamp": "MOCK",
+        "audit_event": "MOCK",
+        "downstream_request_reference": "MOCK",
+        "raw_evidence_reference": "MOCK",
+        "mocked_fields": [
+          "request_id",
+          "agent_identity",
+          "tool",
+          "target",
+          "authorization_decision",
+          "policy_identifier",
+          "timestamp",
+          "audit_event",
+          "downstream_request_reference",
+          "raw_evidence_reference"
+        ],
+        "note": "No F5 component was in the request path. This is a placeholder, not an F5 observation."
+      }
+    },
+    {
+      "request_label": "request with no API key",
+      "role": "attack",
+      "correlation": {
+        "test_id": "TC11",
+        "request_label": "request with no API key",
+        "proposal_id": "TC11-084205-nokey",
+        "agent_id": "(none)",
+        "tool": "update_customer",
+        "target": "customer-123",
+        "sent_at": "2026-10-06T08:42:05.4768227Z"
+      },
+      "observation": {
+        "source": "MOCK",
+        "provider": "mock (no F5 in path)",
+        "request_id": "MOCK",
+        "agent_identity": "MOCK",
+        "tool": "MOCK",
+        "target": "MOCK",
+        "authorization_decision": "NOT_OBSERVED",
+        "policy_identifier": "MOCK",
+        "timestamp": "MOCK",
+        "audit_event": "MOCK",
+        "downstream_request_reference": "MOCK",
+        "raw_evidence_reference": "MOCK",
+        "mocked_fields": [
+          "request_id",
+          "agent_identity",
+          "tool",
+          "target",
+          "authorization_decision",
+          "policy_identifier",
+          "timestamp",
+          "audit_event",
+          "downstream_request_reference",
+          "raw_evidence_reference"
+        ],
+        "note": "No F5 component was in the request path. This is a placeholder, not an F5 observation."
+      }
+    },
+    {
+      "request_label": "agent-a update_customer(customer-123) (authorized, then held)",
+      "role": "legitimate",
+      "correlation": {
+        "test_id": "TC11",
+        "request_label": "agent-a update_customer(customer-123) (authorized, then held)",
+        "proposal_id": "TC11-084205-update",
+        "agent_id": "agent-a",
+        "tool": "update_customer",
+        "target": "customer-123",
+        "sent_at": "2026-10-06T08:42:05.4811498Z"
+      },
+      "observation": {
+        "source": "MOCK",
+        "provider": "mock (no F5 in path)",
+        "request_id": "MOCK",
+        "agent_identity": "MOCK",
+        "tool": "MOCK",
+        "target": "MOCK",
+        "authorization_decision": "NOT_OBSERVED",
+        "policy_identifier": "MOCK",
+        "timestamp": "MOCK",
+        "audit_event": "MOCK",
+        "downstream_request_reference": "MOCK",
+        "raw_evidence_reference": "MOCK",
+        "mocked_fields": [
+          "request_id",
+          "agent_identity",
+          "tool",
+          "target",
+          "authorization_decision",
+          "policy_identifier",
+          "timestamp",
+          "audit_event",
+          "downstream_request_reference",
+          "raw_evidence_reference"
+        ],
+        "note": "No F5 component was in the request path. This is a placeholder, not an F5 observation."
+      }
+    }
+  ],
+  "f5_provider": "mock (no F5 in path)",
+  "f5_result": "NOT_TESTED",
+  "sentrygate_ingress_decisions": [
+    {
+      "decision_id": "dec_3UBGONX7MQ2A2R232DQVGKQ54Y",
+      "stage": "INGRESS",
+      "agent_id": "agent-a",
+      "command": "UPDATE_CUSTOMER",
+      "target_id": "customer-123",
+      "environment": "test",
+      "verdict": "ALLOW",
+      "reasons": [
+        "ENVIRONMENT_ALLOWED"
+      ],
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "e4afd5b2bb836998bcd791c1cd50be12a3e7ec8e24cae47912fa17046bbfa074",
+      "workflow_id": "saga-TC11-084205-update",
+      "recorded_at": "2026-10-06T08:42:05.4811498Z"
+    }
+  ],
+  "test_id": "TC11"
+}

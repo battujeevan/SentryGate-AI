@@ -1,0 +1,117 @@
+{
+  "test_id": "TC09",
+  "test_name": "Unknown outcome (applied, response lost)",
+  "kind": "fault",
+  "objective": "When the target applies a call but the response is lost, SentryGate must treat the outcome as UNKNOWN, reconcile with the target, and never send the call again.",
+  "method": [
+    "agent-a sends update_customer(customer-lost-response). The test MCP server applies it, then closes the connection without a response.",
+    "Observe the workflow's dispatch outcome, claim transitions, reconciliation and the MCP server's records."
+  ],
+  "expected": "DISPATCH_CONFIG is recorded UNKNOWN; the claim moves to RECONCILIATION_REQUIRED; the adapter's status lookup (sentrygate_execution_status) reports APPLIED; the run completes and the claim is COMPLETED. The MCP server received exactly one tools/call for the key: no blind retry.",
+  "status": "VERIFIED",
+  "f5_result": "NOT_TESTED",
+  "f5_provider": "mock (no F5 in path)",
+  "f5_observation_source": "MOCK",
+  "sentrygate_result": "EXECUTED",
+  "infrastructure_result": "MUTATED",
+  "mutation_count": 1,
+  "expected_mutation_count": 1,
+  "tool_invocations": 1,
+  "checks": [
+    {
+      "name": "dispatch outcome recorded",
+      "expected": "DISPATCH_UNKNOWN",
+      "observed": "DISPATCH_UNKNOWN",
+      "result": "PASS"
+    },
+    {
+      "name": "reconciliation",
+      "expected": "RECONCILIATION_REQUIRED -> RECONCILED_PASS",
+      "observed": "RECONCILIATION_REQUIRED -> RECONCILED_PASS",
+      "result": "PASS"
+    },
+    {
+      "name": "final claim state",
+      "expected": "COMPLETED",
+      "observed": "COMPLETED",
+      "result": "PASS"
+    },
+    {
+      "name": "tools/call invocations for the idempotency key",
+      "expected": "1",
+      "observed": "1",
+      "result": "PASS"
+    },
+    {
+      "name": "transport events at the MCP server",
+      "expected": "RESPONSE_DROPPED,STATUS_QUERY",
+      "observed": "RESPONSE_DROPPED,STATUS_QUERY",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: agent-a update_customer(customer-lost-response)",
+      "expected": "EXECUTED",
+      "observed": "EXECUTED workflow completed",
+      "result": "PASS"
+    },
+    {
+      "name": "infrastructure mutation count (test MCP server database)",
+      "expected": "1",
+      "observed": "1",
+      "result": "PASS"
+    },
+    {
+      "name": "no idempotency key mutated the target more than once",
+      "expected": "none",
+      "observed": "none",
+      "result": "PASS"
+    }
+  ],
+  "attempts": [
+    {
+      "label": "agent-a update_customer(customer-lost-response)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-lost-response",
+      "sentrygate_outcome": "EXECUTED",
+      "sentrygate_detail": "workflow completed",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    }
+  ],
+  "notes": [
+    "F5 result NOT_TESTED: no F5 component was in the request path; the F5 observation provider was \"mock (no F5 in path)\" and returned placeholders only."
+  ],
+  "limitations": [
+    "Reconciliation here uses the test MCP server's sentrygate_execution_status tool. A real MCP server would need an equivalent status lookup; without one the outcome would stay UNKNOWN and the claim RECONCILIATION_REQUIRED."
+  ],
+  "environment": {
+    "arch": "amd64",
+    "go_version": "go1.27.0",
+    "ingress_path": "test agent -> SentryGate proxy (direct, no gateway)",
+    "mcp_server": "validation/cmd/mcp-test-server (disposable SQLite database per test)",
+    "os": "windows",
+    "sentrygate_worker_adapter": "mcp (workflows.MCPAdapter, SENTRYGATE_ADAPTER=mcp)",
+    "source_revision": "a2fa280747b81037ca4769997b3c86999b9421b8 (with uncommitted changes)",
+    "temporal_mode": "Temporal CLI dev server (server start-dev, in-memory), started by the harness",
+    "temporal_version": "temporal version 1.9.1 (Server 1.32.0, UI 2.54.1)",
+    "worker_mcp_path": "SentryGate worker -> test MCP server (direct, no gateway)"
+  },
+  "started_at": "2026-10-06T08:42:02Z",
+  "finished_at": "2026-10-06T08:42:03Z",
+  "evidence_path": "validation/evidence/TC09",
+  "files": [
+    "after-state.json",
+    "authorization.json",
+    "before-state.json",
+    "execution-count.json",
+    "execution.json",
+    "infrastructure-state.json",
+    "request.json",
+    "sentrygate-decision.json",
+    "test-result.json"
+  ]
+}

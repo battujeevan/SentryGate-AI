@@ -1,0 +1,102 @@
+{
+  "counts": {
+    "invocations": 5,
+    "applied": 5,
+    "mutations": 5,
+    "invocations_by_tool": {
+      "update_customer": 5
+    },
+    "invocations_by_target": {
+      "customer-123": 5
+    },
+    "invocations_by_idempotency_key": {
+      "sentrygate.exec.v1:dec_24DMKNVRPVC4MXOXMYO2DBDOYT": 1,
+      "sentrygate.exec.v1:dec_6AH3DXYSMSIZZWMX4WHN7C3NLQ": 1,
+      "sentrygate.exec.v1:dec_CCE6VMYIAC2DHEYCFGWMOV552E": 1,
+      "sentrygate.exec.v1:dec_GKVM4WMSQBZO5ABA4JQPN7GD4M": 1,
+      "sentrygate.exec.v1:dec_JTAJODFFQGQ475WNWPIXSUGCEP": 1
+    },
+    "mutations_by_target": {
+      "customer-123": 5
+    }
+  },
+  "executions": [
+    {
+      "execution_id": "x000001",
+      "timestamp": "2026-10-06T08:41:56.212347Z",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "request": "{\"customer_id\":\"customer-123\",\"tier\":\"silver\"}",
+      "request_hash": "6e35827d422ab24069d1f3b9b21d263e236e0e1f50b72c799df176cc8d7d9df3",
+      "sentrygate_request_hash": "d850895df37f519f982bb5e18bf880bb3b8de4585759f57f74064daeea171830",
+      "idempotency_key": "sentrygate.exec.v1:dec_CCE6VMYIAC2DHEYCFGWMOV552E",
+      "proposal_id": "TC07-084155-update",
+      "result": "APPLIED",
+      "detail": "customer updated",
+      "mutation_count": 1
+    },
+    {
+      "execution_id": "x000002",
+      "timestamp": "2026-10-06T08:41:56.746496Z",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "request": "{\"customer_id\":\"customer-123\",\"tier\":\"silver\"}",
+      "request_hash": "6e35827d422ab24069d1f3b9b21d263e236e0e1f50b72c799df176cc8d7d9df3",
+      "sentrygate_request_hash": "d850895df37f519f982bb5e18bf880bb3b8de4585759f57f74064daeea171830",
+      "idempotency_key": "sentrygate.exec.v1:dec_JTAJODFFQGQ475WNWPIXSUGCEP",
+      "proposal_id": "TC07-084155-update",
+      "result": "APPLIED",
+      "detail": "customer updated",
+      "mutation_count": 1
+    },
+    {
+      "execution_id": "x000003",
+      "timestamp": "2026-10-06T08:41:57.247411Z",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "request": "{\"customer_id\":\"customer-123\",\"tier\":\"silver\"}",
+      "request_hash": "6e35827d422ab24069d1f3b9b21d263e236e0e1f50b72c799df176cc8d7d9df3",
+      "sentrygate_request_hash": "d850895df37f519f982bb5e18bf880bb3b8de4585759f57f74064daeea171830",
+      "idempotency_key": "sentrygate.exec.v1:dec_GKVM4WMSQBZO5ABA4JQPN7GD4M",
+      "proposal_id": "TC07-084155-update",
+      "result": "APPLIED",
+      "detail": "customer updated",
+      "mutation_count": 1
+    },
+    {
+      "execution_id": "x000004",
+      "timestamp": "2026-10-06T08:41:57.7465372Z",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "request": "{\"customer_id\":\"customer-123\",\"tier\":\"silver\"}",
+      "request_hash": "6e35827d422ab24069d1f3b9b21d263e236e0e1f50b72c799df176cc8d7d9df3",
+      "sentrygate_request_hash": "d850895df37f519f982bb5e18bf880bb3b8de4585759f57f74064daeea171830",
+      "idempotency_key": "sentrygate.exec.v1:dec_24DMKNVRPVC4MXOXMYO2DBDOYT",
+      "proposal_id": "TC07-084155-update",
+      "result": "APPLIED",
+      "detail": "customer updated",
+      "mutation_count": 1
+    },
+    {
+      "execution_id": "x000005",
+      "timestamp": "2026-10-06T08:41:58.2501474Z",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "request": "{\"customer_id\":\"customer-123\",\"tier\":\"silver\"}",
+      "request_hash": "6e35827d422ab24069d1f3b9b21d263e236e0e1f50b72c799df176cc8d7d9df3",
+      "sentrygate_request_hash": "d850895df37f519f982bb5e18bf880bb3b8de4585759f57f74064daeea171830",
+      "idempotency_key": "sentrygate.exec.v1:dec_6AH3DXYSMSIZZWMX4WHN7C3NLQ",
+      "proposal_id": "TC07-084155-update",
+      "result": "APPLIED",
+      "detail": "customer updated",
+      "mutation_count": 1
+    }
+  ],
+  "note": "Every tools/call that reached the test MCP server, in order. The server never deduplicates.",
+  "test_id": "TC07"
+}

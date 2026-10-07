@@ -1,0 +1,69 @@
+{
+  "note": "API keys are never recorded. path=gateway is POST /v1/intercept; path=execution-boundary is direct Temporal access.",
+  "requests": [
+    {
+      "label": "agent-a update_customer(customer-123) under validation-v1, queued",
+      "role": "attack",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "proposal": {
+        "id": "TC05-084152-v1",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{\"tier\":\"silver\"}"
+      },
+      "workflow_id": "saga-TC05-084152-v1",
+      "run_id": "01a11060-5b59-7acf-b3f3-6f8807898fa9",
+      "sent_at": "2026-10-06T08:41:52.7261565Z",
+      "http_status": 200,
+      "response": {
+        "status": "accepted",
+        "verdict": "ALLOW",
+        "reasons": [
+          "ENVIRONMENT_ALLOWED"
+        ],
+        "decision_id": "dec_CBQ7HDIK56X2PV7MMADJNFULMT",
+        "proposal_id": "TC05-084152-v1",
+        "workflow_id": "saga-TC05-084152-v1",
+        "run_id": "01a11060-5b59-7acf-b3f3-6f8807898fa9"
+      },
+      "workflow_outcome": {
+        "workflow_id": "saga-TC05-084152-v1",
+        "run_id": "01a11060-5b59-7acf-b3f3-6f8807898fa9",
+        "status": "FAILED",
+        "error_type": "REVALIDATION_DENIED",
+        "message": "proposal denied at workflow re-validation: DENY COMMAND_NOT_PERMITTED_FOR_AGENT (type: REVALIDATION_DENIED, retryable: false)"
+      },
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "REVALIDATION_DENIED"
+    },
+    {
+      "label": "agent-a update_customer(customer-123) under validation-v2",
+      "role": "attack",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "proposal": {
+        "id": "TC05-084152-v2",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{\"tier\":\"silver\"}"
+      },
+      "sent_at": "2026-10-06T08:41:53.6670679Z",
+      "http_status": 403,
+      "response": {
+        "status": "rejected",
+        "verdict": "DENY",
+        "reasons": [
+          "COMMAND_NOT_PERMITTED_FOR_AGENT"
+        ],
+        "decision_id": "dec_HKXMEZYPWRUODDIT34IDQ7IQOF",
+        "proposal_id": "TC05-084152-v2"
+      },
+      "sentrygate_outcome": "DENIED_AT_INGRESS",
+      "sentrygate_detail": "verdict=DENY reasons=COMMAND_NOT_PERMITTED_FOR_AGENT decision_id=dec_HKXMEZYPWRUODDIT34IDQ7IQOF"
+    }
+  ],
+  "test_id": "TC05"
+}

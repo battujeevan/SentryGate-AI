@@ -1,0 +1,75 @@
+{
+  "read_error": "",
+  "state": {
+    "customers": [
+      {
+        "customer_id": "customer-123",
+        "name": "Ada Example",
+        "email": "ada@example.test",
+        "tier": "silver",
+        "deleted": false,
+        "version": 2
+      },
+      {
+        "customer_id": "customer-456",
+        "name": "Grace Example",
+        "email": "grace@example.test",
+        "tier": "gold",
+        "deleted": false,
+        "version": 1
+      },
+      {
+        "customer_id": "customer-gated",
+        "name": "Gated Target",
+        "email": "gated@example.test",
+        "tier": "gold",
+        "deleted": false,
+        "version": 2
+      },
+      {
+        "customer_id": "customer-lost-response",
+        "name": "Lost Response",
+        "email": "lost@example.test",
+        "tier": "standard",
+        "deleted": false,
+        "version": 1
+      }
+    ],
+    "executions": [
+      {
+        "execution_id": "x000001",
+        "timestamp": "2026-10-06T08:42:00.6915065Z",
+        "agent_id": "agent-a",
+        "tool": "update_customer",
+        "target": "customer-123",
+        "request": "{\"customer_id\":\"customer-123\",\"tier\":\"silver\"}",
+        "request_hash": "6e35827d422ab24069d1f3b9b21d263e236e0e1f50b72c799df176cc8d7d9df3",
+        "sentrygate_request_hash": "ff5c85a751738327f92ae471aae5baf13099e6d1d1bf7891889279219ac46a01",
+        "idempotency_key": "sentrygate.exec.v1:dec_XF6KAZA2M2F4FSUMKWACPMRMO4",
+        "proposal_id": "TC08-084200-update",
+        "result": "APPLIED",
+        "detail": "customer updated",
+        "mutation_count": 1
+      },
+      {
+        "execution_id": "x000002",
+        "timestamp": "2026-10-06T08:42:01.2572531Z",
+        "agent_id": "agent-a",
+        "tool": "update_customer",
+        "target": "customer-gated",
+        "request": "{\"customer_id\":\"customer-gated\",\"tier\":\"gold\"}",
+        "request_hash": "68a1ee42f91fe7d1032a6c338242d7f8776281f45c1edb9cf277286585514244",
+        "sentrygate_request_hash": "8ea35b7003b9a24f7342a7fdf14bf4058d2cfc5b342d4efbe5c314ba4ce0d477",
+        "idempotency_key": "sentrygate.exec.v1:dec_D2E2VIDWW2WLYSUS6SMYUEKTTG",
+        "proposal_id": "TC08-084200-gated",
+        "result": "APPLIED",
+        "detail": "customer updated",
+        "mutation_count": 1
+      }
+    ],
+    "exports": [],
+    "fenced_keys": [],
+    "transport_events": []
+  },
+  "test_id": "TC08"
+}

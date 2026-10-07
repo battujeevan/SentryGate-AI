@@ -1,0 +1,174 @@
+{
+  "test_id": "TC08",
+  "test_name": "Workflow replay and reset",
+  "kind": "attack",
+  "objective": "Resetting a workflow to before its dispatch must not execute the operation again, whether the original run has completed or is still dispatching.",
+  "method": [
+    "agent-a sends update_customer(customer-123); it executes once. The attacker resets the completed run (Temporal ResetWorkflowExecution) to the workflow task right after ClaimExecution, so the new run replays the claim and proceeds to dispatch.",
+    "agent-a sends update_customer(customer-gated); the test MCP server holds the call at its gate. While the original run's dispatch is held, the attacker resets it the same way; Temporal terminates the original run and starts a new one.",
+    "Observe the reset run, then release the gate so the original, still in-flight call completes."
+  ],
+  "expected": "Both reset runs fail EXECUTION_CLAIM_REJECTED at the execution fence without calling the adapter. customer-123 and customer-gated are each mutated exactly once (two mutations in total). The in-flight decision's claim does not return to CLAIMED or RELEASED.",
+  "status": "VERIFIED",
+  "f5_result": "NOT_APPLICABLE",
+  "f5_provider": "mock (no F5 in path)",
+  "f5_observation_source": "MOCK",
+  "sentrygate_result": "BLOCKED_EXECUTION",
+  "infrastructure_result": "MUTATED",
+  "mutation_count": 2,
+  "expected_mutation_count": 2,
+  "tool_invocations": 2,
+  "checks": [
+    {
+      "name": "fence result of the reset run (completed original)",
+      "expected": "REJECTED (adapter not called)",
+      "observed": "REJECTED (adapter not called)",
+      "result": "PASS"
+    },
+    {
+      "name": "fence result of the reset run (in-flight original)",
+      "expected": "REJECTED (adapter not called)",
+      "observed": "REJECTED (adapter not called)",
+      "result": "PASS"
+    },
+    {
+      "name": "customer-123 mutations",
+      "expected": "1",
+      "observed": "1",
+      "result": "PASS"
+    },
+    {
+      "name": "customer-gated mutations",
+      "expected": "1",
+      "observed": "1",
+      "result": "PASS"
+    },
+    {
+      "name": "execution claim on the completed decision",
+      "expected": "COMPLETED",
+      "observed": "COMPLETED",
+      "result": "PASS"
+    },
+    {
+      "name": "execution claim on the in-flight decision",
+      "expected": "not CLAIMED or RELEASED (cannot be used again)",
+      "observed": "EXECUTING, owner run 01a11060-7acc-70d2-86a9-a6d4e57d7b16",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: agent-a update_customer(customer-123)",
+      "expected": "EXECUTED",
+      "observed": "EXECUTED workflow completed",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: reset the completed run to after ClaimExecution",
+      "expected": "REFUSED_AT_EXECUTION_BOUNDARY (EXECUTION_CLAIM_REJECTED)",
+      "observed": "REFUSED_AT_EXECUTION_BOUNDARY EXECUTION_CLAIM_REJECTED",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: agent-a update_customer(customer-gated)",
+      "expected": "TERMINATED_BEFORE_EXECUTION",
+      "observed": "TERMINATED_BEFORE_EXECUTION run terminated",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: reset the in-flight run while its dispatch is held at the target",
+      "expected": "REFUSED_AT_EXECUTION_BOUNDARY (EXECUTION_CLAIM_REJECTED)",
+      "observed": "REFUSED_AT_EXECUTION_BOUNDARY EXECUTION_CLAIM_REJECTED",
+      "result": "PASS"
+    },
+    {
+      "name": "infrastructure mutation count (test MCP server database)",
+      "expected": "2",
+      "observed": "2",
+      "result": "PASS"
+    },
+    {
+      "name": "no idempotency key mutated the target more than once",
+      "expected": "none",
+      "observed": "none",
+      "result": "PASS"
+    }
+  ],
+  "attempts": [
+    {
+      "label": "agent-a update_customer(customer-123)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "sentrygate_outcome": "EXECUTED",
+      "sentrygate_detail": "workflow completed",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    },
+    {
+      "label": "reset the completed run to after ClaimExecution",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal ResetWorkflowExecution (workflow task finished at event 17)",
+      "agent_id": "",
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "EXECUTION_CLAIM_REJECTED"
+    },
+    {
+      "label": "agent-a update_customer(customer-gated)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-gated",
+      "sentrygate_outcome": "TERMINATED_BEFORE_EXECUTION",
+      "sentrygate_detail": "run terminated",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    },
+    {
+      "label": "reset the in-flight run while its dispatch is held at the target",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal ResetWorkflowExecution (workflow task finished at event 17)",
+      "agent_id": "",
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "EXECUTION_CLAIM_REJECTED"
+    }
+  ],
+  "notes": [
+    "After the in-flight reset, the claim is EXECUTING and owned by the terminated original run 01a11060-7acc-70d2-86a9-a6d4e57d7b16; the call it made completed after the reset. No workflow run remains to mark it COMPLETED or to reconcile it.",
+    "F5 result NOT_APPLICABLE: every attack request in this test was sent to the execution boundary (Temporal) directly, a path that does not pass through a gateway in front of SentryGate ingress."
+  ],
+  "limitations": [
+    "The dispatch activity does not heartbeat, so it does not learn that its run was reset. The test releases the gate after the reset run has closed, lets the original call complete, and records the resulting claim state and mutation count."
+  ],
+  "environment": {
+    "arch": "amd64",
+    "go_version": "go1.27.0",
+    "ingress_path": "test agent -> SentryGate proxy (direct, no gateway)",
+    "mcp_server": "validation/cmd/mcp-test-server (disposable SQLite database per test)",
+    "os": "windows",
+    "sentrygate_worker_adapter": "mcp (workflows.MCPAdapter, SENTRYGATE_ADAPTER=mcp)",
+    "source_revision": "a2fa280747b81037ca4769997b3c86999b9421b8 (with uncommitted changes)",
+    "temporal_mode": "Temporal CLI dev server (server start-dev, in-memory), started by the harness",
+    "temporal_version": "temporal version 1.9.1 (Server 1.32.0, UI 2.54.1)",
+    "worker_mcp_path": "SentryGate worker -> test MCP server (direct, no gateway)"
+  },
+  "started_at": "2026-10-06T08:42:00Z",
+  "finished_at": "2026-10-06T08:42:02Z",
+  "evidence_path": "validation/evidence/TC08",
+  "files": [
+    "after-state.json",
+    "authorization.json",
+    "before-state.json",
+    "execution-count.json",
+    "execution.json",
+    "infrastructure-state.json",
+    "request.json",
+    "sentrygate-decision.json",
+    "test-result.json"
+  ]
+}

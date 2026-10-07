@@ -1,0 +1,764 @@
+{
+  "attempts": [
+    {
+      "label": "agent-a update_customer(customer-123)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "sentrygate_outcome": "EXECUTED",
+      "sentrygate_detail": "workflow completed",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    },
+    {
+      "label": "reset the completed run to after ClaimExecution",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal ResetWorkflowExecution (workflow task finished at event 17)",
+      "agent_id": "",
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "EXECUTION_CLAIM_REJECTED"
+    },
+    {
+      "label": "agent-a update_customer(customer-gated)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-gated",
+      "sentrygate_outcome": "TERMINATED_BEFORE_EXECUTION",
+      "sentrygate_detail": "run terminated",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    },
+    {
+      "label": "reset the in-flight run while its dispatch is held at the target",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal ResetWorkflowExecution (workflow task finished at event 17)",
+      "agent_id": "",
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "EXECUTION_CLAIM_REJECTED"
+    }
+  ],
+  "runs": [
+    {
+      "workflow_id": "saga-TC08-084200-update",
+      "run_id": "01a11060-7a48-741a-8fee-9cd62850588d",
+      "agent_identity": "agent-a",
+      "command": "UPDATE_CUSTOMER",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "environment": "test",
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "ff5c85a751738327f92ae471aae5baf13099e6d1d1bf7891889279219ac46a01",
+      "ingress_decision_id": "dec_XF6KAZA2M2F4FSUMKWACPMRMO4",
+      "authorization_decision": "INGRESS ALLOW [ENVIRONMENT_ALLOWED] (policy validation-v1)",
+      "revalidation_decision": "ALLOW [ENVIRONMENT_ALLOWED] (policy validation-v1)",
+      "claim_state": "COMPLETED",
+      "claim_owned_by_this_run": true,
+      "execution_state": "DISPATCH_PASS",
+      "fence_result": "ACQUIRED (adapter called)",
+      "reconciliation_state": "NOT_REQUIRED",
+      "final_outcome": "COMPLETED",
+      "claim": {
+        "decision_id": "dec_XF6KAZA2M2F4FSUMKWACPMRMO4",
+        "state": "COMPLETED",
+        "owner_workflow_id": "saga-TC08-084200-update",
+        "owner_run_id": "01a11060-7a48-741a-8fee-9cd62850588d",
+        "claimed_at": "2026-10-06T08:42:00.6632689Z",
+        "updated_at": "2026-10-06T08:42:00.7059108Z"
+      },
+      "history": {
+        "workflow_id": "saga-TC08-084200-update",
+        "run_id": "01a11060-7a48-741a-8fee-9cd62850588d",
+        "events": [
+          {
+            "event_id": 1,
+            "type": "WorkflowExecutionStarted"
+          },
+          {
+            "event_id": 5,
+            "type": "ActivityTaskScheduled",
+            "activity": "VerifyIngressDecision"
+          },
+          {
+            "event_id": 7,
+            "type": "ActivityTaskCompleted",
+            "activity": "VerifyIngressDecision"
+          },
+          {
+            "event_id": 11,
+            "type": "MarkerRecorded"
+          },
+          {
+            "event_id": 12,
+            "type": "ActivityTaskScheduled",
+            "activity": "ClaimExecution"
+          },
+          {
+            "event_id": 14,
+            "type": "ActivityTaskCompleted",
+            "activity": "ClaimExecution"
+          },
+          {
+            "event_id": 18,
+            "type": "ActivityTaskScheduled",
+            "activity": "EvaluateExecution"
+          },
+          {
+            "event_id": 20,
+            "type": "ActivityTaskCompleted",
+            "activity": "EvaluateExecution"
+          },
+          {
+            "event_id": 24,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordDecision"
+          },
+          {
+            "event_id": 26,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordDecision"
+          },
+          {
+            "event_id": 30,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 32,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 36,
+            "type": "ActivityTaskScheduled",
+            "activity": "DispatchConfig"
+          },
+          {
+            "event_id": 38,
+            "type": "ActivityTaskCompleted",
+            "activity": "DispatchConfig"
+          },
+          {
+            "event_id": 42,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 44,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 48,
+            "type": "ActivityTaskScheduled",
+            "activity": "AdvanceExecutionClaim",
+            "claim_transition_to": "COMPLETED"
+          },
+          {
+            "event_id": 50,
+            "type": "ActivityTaskCompleted",
+            "activity": "AdvanceExecutionClaim"
+          },
+          {
+            "event_id": 54,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 56,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 60,
+            "type": "WorkflowExecutionCompleted"
+          }
+        ],
+        "claim_reset_point": 17
+      },
+      "audit_trail": [
+        {
+          "phase": "WORKFLOW_REVALIDATION",
+          "verdict": "PASS",
+          "detail": "verdict=ALLOW reasons=ENVIRONMENT_ALLOWED policy_version=validation-v1 ingress_decision_id=dec_XF6KAZA2M2F4FSUMKWACPMRMO4",
+          "recorded_at": "2026-10-06T08:42:00.6779444Z"
+        },
+        {
+          "phase": "DISPATCH_CONFIG",
+          "verdict": "PASS",
+          "detail": "outcome=SUCCESS partially_applied=false idempotency_key=sentrygate.exec.v1:dec_XF6KAZA2M2F4FSUMKWACPMRMO4 target=customer-123 detail=\"mcp: tool=update_customer status=SUCCESS execution_id=x000001\"",
+          "recorded_at": "2026-10-06T08:42:00.6954478Z"
+        },
+        {
+          "phase": "WORKFLOW_COMPLETE",
+          "verdict": "PASS",
+          "detail": "workflow completed without compensation",
+          "recorded_at": "2026-10-06T08:42:00.7093223Z"
+        }
+      ],
+      "decision_records": [
+        {
+          "decision_id": "dec_XF6KAZA2M2F4FSUMKWACPMRMO4",
+          "stage": "INGRESS",
+          "agent_id": "agent-a",
+          "command": "UPDATE_CUSTOMER",
+          "target_id": "customer-123",
+          "environment": "test",
+          "verdict": "ALLOW",
+          "reasons": [
+            "ENVIRONMENT_ALLOWED"
+          ],
+          "policy_version": "validation-v1",
+          "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+          "request_hash": "ff5c85a751738327f92ae471aae5baf13099e6d1d1bf7891889279219ac46a01",
+          "workflow_id": "saga-TC08-084200-update",
+          "recorded_at": "2026-10-06T08:42:00.6450598Z"
+        },
+        {
+          "decision_id": "wf_saga-TC08-084200-update_01a11060-7a48-741a-8fee-9cd62850588d",
+          "stage": "WORKFLOW_REVALIDATION",
+          "agent_id": "agent-a",
+          "command": "UPDATE_CUSTOMER",
+          "target_id": "customer-123",
+          "environment": "test",
+          "verdict": "ALLOW",
+          "reasons": [
+            "ENVIRONMENT_ALLOWED"
+          ],
+          "policy_version": "validation-v1",
+          "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+          "request_hash": "ff5c85a751738327f92ae471aae5baf13099e6d1d1bf7891889279219ac46a01",
+          "workflow_id": "saga-TC08-084200-update",
+          "recorded_at": "2026-10-06T08:42:00.6717543Z"
+        }
+      ]
+    },
+    {
+      "workflow_id": "saga-TC08-084200-update",
+      "run_id": "dc6b805c-836b-4a47-abb9-ae499ee4a956",
+      "agent_identity": "agent-a",
+      "command": "UPDATE_CUSTOMER",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "environment": "test",
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "ff5c85a751738327f92ae471aae5baf13099e6d1d1bf7891889279219ac46a01",
+      "ingress_decision_id": "dec_XF6KAZA2M2F4FSUMKWACPMRMO4",
+      "authorization_decision": "INGRESS ALLOW [ENVIRONMENT_ALLOWED] (policy validation-v1)",
+      "revalidation_decision": "ALLOW [ENVIRONMENT_ALLOWED] (policy validation-v1)",
+      "claim_state": "COMPLETED",
+      "claim_owned_by_this_run": false,
+      "execution_state": "NOT_DISPATCHED",
+      "fence_result": "REJECTED (adapter not called)",
+      "reconciliation_state": "NOT_REQUIRED",
+      "final_outcome": "FAILED EXECUTION_CLAIM_REJECTED",
+      "claim": {
+        "decision_id": "dec_XF6KAZA2M2F4FSUMKWACPMRMO4",
+        "state": "COMPLETED",
+        "owner_workflow_id": "saga-TC08-084200-update",
+        "owner_run_id": "01a11060-7a48-741a-8fee-9cd62850588d",
+        "claimed_at": "2026-10-06T08:42:00.6632689Z",
+        "updated_at": "2026-10-06T08:42:00.7059108Z"
+      },
+      "history": {
+        "workflow_id": "saga-TC08-084200-update",
+        "run_id": "dc6b805c-836b-4a47-abb9-ae499ee4a956",
+        "events": [
+          {
+            "event_id": 1,
+            "type": "WorkflowExecutionStarted"
+          },
+          {
+            "event_id": 5,
+            "type": "ActivityTaskScheduled",
+            "activity": "VerifyIngressDecision"
+          },
+          {
+            "event_id": 7,
+            "type": "ActivityTaskCompleted",
+            "activity": "VerifyIngressDecision"
+          },
+          {
+            "event_id": 11,
+            "type": "MarkerRecorded"
+          },
+          {
+            "event_id": 12,
+            "type": "ActivityTaskScheduled",
+            "activity": "ClaimExecution"
+          },
+          {
+            "event_id": 14,
+            "type": "ActivityTaskCompleted",
+            "activity": "ClaimExecution"
+          },
+          {
+            "event_id": 21,
+            "type": "ActivityTaskScheduled",
+            "activity": "EvaluateExecution"
+          },
+          {
+            "event_id": 23,
+            "type": "ActivityTaskCompleted",
+            "activity": "EvaluateExecution"
+          },
+          {
+            "event_id": 27,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordDecision"
+          },
+          {
+            "event_id": 29,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordDecision"
+          },
+          {
+            "event_id": 33,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 35,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 39,
+            "type": "ActivityTaskScheduled",
+            "activity": "DispatchConfig"
+          },
+          {
+            "event_id": 41,
+            "type": "ActivityTaskFailed",
+            "activity": "DispatchConfig",
+            "failure_type": "EXECUTION_FENCE_REJECTED",
+            "failure": "adapter not called: execution fence is not held by this run"
+          },
+          {
+            "event_id": 45,
+            "type": "ActivityTaskScheduled",
+            "activity": "AdvanceExecutionClaim",
+            "claim_transition_to": "RELEASED"
+          },
+          {
+            "event_id": 47,
+            "type": "ActivityTaskFailed",
+            "activity": "AdvanceExecutionClaim",
+            "failure_type": "EXECUTION_CLAIM_REJECTED",
+            "failure": "execution does not hold the claim in a state that permits this transition"
+          },
+          {
+            "event_id": 51,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 53,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 57,
+            "type": "WorkflowExecutionFailed",
+            "failure_type": "EXECUTION_CLAIM_REJECTED",
+            "failure": "execution fence not acquired; proposal not executed"
+          }
+        ],
+        "claim_reset_point": 20
+      },
+      "audit_trail": [
+        {
+          "phase": "WORKFLOW_REVALIDATION",
+          "verdict": "PASS",
+          "detail": "verdict=ALLOW reasons=ENVIRONMENT_ALLOWED policy_version=validation-v1 ingress_decision_id=dec_XF6KAZA2M2F4FSUMKWACPMRMO4",
+          "recorded_at": "2026-10-06T08:42:00.7419903Z"
+        },
+        {
+          "phase": "EXECUTION_FENCE",
+          "verdict": "FAIL",
+          "detail": "adapter not called: released=false ingress_decision_id=dec_XF6KAZA2M2F4FSUMKWACPMRMO4 error=\"activity error (type: DispatchConfig, scheduledEventID: 39, startedEventID: 40, identity: 15396@LAPTOP-AJIS5RJH@): adapter not called: execution fence is not held by this run (type: EXECUTION_FENCE_REJECTED, retryable: false): execution does not hold the claim in a state that permits this transition\"",
+          "recorded_at": "2026-10-06T08:42:00.7609488Z"
+        }
+      ],
+      "decision_records": [
+        {
+          "decision_id": "dec_XF6KAZA2M2F4FSUMKWACPMRMO4",
+          "stage": "INGRESS",
+          "agent_id": "agent-a",
+          "command": "UPDATE_CUSTOMER",
+          "target_id": "customer-123",
+          "environment": "test",
+          "verdict": "ALLOW",
+          "reasons": [
+            "ENVIRONMENT_ALLOWED"
+          ],
+          "policy_version": "validation-v1",
+          "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+          "request_hash": "ff5c85a751738327f92ae471aae5baf13099e6d1d1bf7891889279219ac46a01",
+          "workflow_id": "saga-TC08-084200-update",
+          "recorded_at": "2026-10-06T08:42:00.6450598Z"
+        },
+        {
+          "decision_id": "wf_saga-TC08-084200-update_dc6b805c-836b-4a47-abb9-ae499ee4a956",
+          "stage": "WORKFLOW_REVALIDATION",
+          "agent_id": "agent-a",
+          "command": "UPDATE_CUSTOMER",
+          "target_id": "customer-123",
+          "environment": "test",
+          "verdict": "ALLOW",
+          "reasons": [
+            "ENVIRONMENT_ALLOWED"
+          ],
+          "policy_version": "validation-v1",
+          "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+          "request_hash": "ff5c85a751738327f92ae471aae5baf13099e6d1d1bf7891889279219ac46a01",
+          "workflow_id": "saga-TC08-084200-update",
+          "recorded_at": "2026-10-06T08:42:00.7341638Z"
+        }
+      ]
+    },
+    {
+      "workflow_id": "saga-TC08-084200-gated",
+      "run_id": "01a11060-7acc-70d2-86a9-a6d4e57d7b16",
+      "agent_identity": "agent-a",
+      "command": "UPDATE_CUSTOMER",
+      "tool": "update_customer",
+      "target": "customer-gated",
+      "environment": "test",
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "8ea35b7003b9a24f7342a7fdf14bf4058d2cfc5b342d4efbe5c314ba4ce0d477",
+      "ingress_decision_id": "dec_D2E2VIDWW2WLYSUS6SMYUEKTTG",
+      "authorization_decision": "INGRESS ALLOW [ENVIRONMENT_ALLOWED] (policy validation-v1)",
+      "revalidation_decision": "ALLOW [ENVIRONMENT_ALLOWED] (policy validation-v1)",
+      "claim_state": "EXECUTING",
+      "claim_owned_by_this_run": true,
+      "execution_state": "NOT_DISPATCHED",
+      "fence_result": "NOT_REACHED",
+      "reconciliation_state": "NOT_REQUIRED",
+      "final_outcome": "TERMINATED",
+      "claim": {
+        "decision_id": "dec_D2E2VIDWW2WLYSUS6SMYUEKTTG",
+        "state": "EXECUTING",
+        "owner_workflow_id": "saga-TC08-084200-gated",
+        "owner_run_id": "01a11060-7acc-70d2-86a9-a6d4e57d7b16",
+        "claimed_at": "2026-10-06T08:42:00.7925023Z",
+        "updated_at": "2026-10-06T08:42:00.9045266Z"
+      },
+      "history": {
+        "workflow_id": "saga-TC08-084200-gated",
+        "run_id": "01a11060-7acc-70d2-86a9-a6d4e57d7b16",
+        "events": [
+          {
+            "event_id": 1,
+            "type": "WorkflowExecutionStarted"
+          },
+          {
+            "event_id": 5,
+            "type": "ActivityTaskScheduled",
+            "activity": "VerifyIngressDecision"
+          },
+          {
+            "event_id": 7,
+            "type": "ActivityTaskCompleted",
+            "activity": "VerifyIngressDecision"
+          },
+          {
+            "event_id": 11,
+            "type": "MarkerRecorded"
+          },
+          {
+            "event_id": 12,
+            "type": "ActivityTaskScheduled",
+            "activity": "ClaimExecution"
+          },
+          {
+            "event_id": 14,
+            "type": "ActivityTaskCompleted",
+            "activity": "ClaimExecution"
+          },
+          {
+            "event_id": 18,
+            "type": "ActivityTaskScheduled",
+            "activity": "EvaluateExecution"
+          },
+          {
+            "event_id": 20,
+            "type": "ActivityTaskCompleted",
+            "activity": "EvaluateExecution"
+          },
+          {
+            "event_id": 24,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordDecision"
+          },
+          {
+            "event_id": 26,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordDecision"
+          },
+          {
+            "event_id": 30,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 32,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 36,
+            "type": "ActivityTaskScheduled",
+            "activity": "DispatchConfig"
+          },
+          {
+            "event_id": 37,
+            "type": "WorkflowExecutionTerminated"
+          }
+        ],
+        "claim_reset_point": 17
+      },
+      "audit_trail": [
+        {
+          "phase": "WORKFLOW_REVALIDATION",
+          "verdict": "PASS",
+          "detail": "verdict=ALLOW reasons=ENVIRONMENT_ALLOWED policy_version=validation-v1 ingress_decision_id=dec_D2E2VIDWW2WLYSUS6SMYUEKTTG",
+          "recorded_at": "2026-10-06T08:42:00.850232Z"
+        }
+      ],
+      "decision_records": [
+        {
+          "decision_id": "dec_D2E2VIDWW2WLYSUS6SMYUEKTTG",
+          "stage": "INGRESS",
+          "agent_id": "agent-a",
+          "command": "UPDATE_CUSTOMER",
+          "target_id": "customer-gated",
+          "environment": "test",
+          "verdict": "ALLOW",
+          "reasons": [
+            "ENVIRONMENT_ALLOWED"
+          ],
+          "policy_version": "validation-v1",
+          "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+          "request_hash": "8ea35b7003b9a24f7342a7fdf14bf4058d2cfc5b342d4efbe5c314ba4ce0d477",
+          "workflow_id": "saga-TC08-084200-gated",
+          "recorded_at": "2026-10-06T08:42:00.7772865Z"
+        },
+        {
+          "decision_id": "wf_saga-TC08-084200-gated_01a11060-7acc-70d2-86a9-a6d4e57d7b16",
+          "stage": "WORKFLOW_REVALIDATION",
+          "agent_id": "agent-a",
+          "command": "UPDATE_CUSTOMER",
+          "target_id": "customer-gated",
+          "environment": "test",
+          "verdict": "ALLOW",
+          "reasons": [
+            "ENVIRONMENT_ALLOWED"
+          ],
+          "policy_version": "validation-v1",
+          "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+          "request_hash": "8ea35b7003b9a24f7342a7fdf14bf4058d2cfc5b342d4efbe5c314ba4ce0d477",
+          "workflow_id": "saga-TC08-084200-gated",
+          "recorded_at": "2026-10-06T08:42:00.8012551Z"
+        }
+      ]
+    },
+    {
+      "workflow_id": "saga-TC08-084200-gated",
+      "run_id": "4ece2193-3fd6-4d96-928d-756ee0b908af",
+      "agent_identity": "agent-a",
+      "command": "UPDATE_CUSTOMER",
+      "tool": "update_customer",
+      "target": "customer-gated",
+      "environment": "test",
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "8ea35b7003b9a24f7342a7fdf14bf4058d2cfc5b342d4efbe5c314ba4ce0d477",
+      "ingress_decision_id": "dec_D2E2VIDWW2WLYSUS6SMYUEKTTG",
+      "authorization_decision": "INGRESS ALLOW [ENVIRONMENT_ALLOWED] (policy validation-v1)",
+      "revalidation_decision": "ALLOW [ENVIRONMENT_ALLOWED] (policy validation-v1)",
+      "claim_state": "EXECUTING",
+      "claim_owned_by_this_run": false,
+      "execution_state": "NOT_DISPATCHED",
+      "fence_result": "REJECTED (adapter not called)",
+      "reconciliation_state": "NOT_REQUIRED",
+      "final_outcome": "FAILED EXECUTION_CLAIM_REJECTED",
+      "claim": {
+        "decision_id": "dec_D2E2VIDWW2WLYSUS6SMYUEKTTG",
+        "state": "EXECUTING",
+        "owner_workflow_id": "saga-TC08-084200-gated",
+        "owner_run_id": "01a11060-7acc-70d2-86a9-a6d4e57d7b16",
+        "claimed_at": "2026-10-06T08:42:00.7925023Z",
+        "updated_at": "2026-10-06T08:42:00.9045266Z"
+      },
+      "history": {
+        "workflow_id": "saga-TC08-084200-gated",
+        "run_id": "4ece2193-3fd6-4d96-928d-756ee0b908af",
+        "events": [
+          {
+            "event_id": 1,
+            "type": "WorkflowExecutionStarted"
+          },
+          {
+            "event_id": 5,
+            "type": "ActivityTaskScheduled",
+            "activity": "VerifyIngressDecision"
+          },
+          {
+            "event_id": 7,
+            "type": "ActivityTaskCompleted",
+            "activity": "VerifyIngressDecision"
+          },
+          {
+            "event_id": 11,
+            "type": "MarkerRecorded"
+          },
+          {
+            "event_id": 12,
+            "type": "ActivityTaskScheduled",
+            "activity": "ClaimExecution"
+          },
+          {
+            "event_id": 14,
+            "type": "ActivityTaskCompleted",
+            "activity": "ClaimExecution"
+          },
+          {
+            "event_id": 21,
+            "type": "ActivityTaskScheduled",
+            "activity": "EvaluateExecution"
+          },
+          {
+            "event_id": 23,
+            "type": "ActivityTaskCompleted",
+            "activity": "EvaluateExecution"
+          },
+          {
+            "event_id": 27,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordDecision"
+          },
+          {
+            "event_id": 29,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordDecision"
+          },
+          {
+            "event_id": 33,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 35,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 39,
+            "type": "ActivityTaskScheduled",
+            "activity": "DispatchConfig"
+          },
+          {
+            "event_id": 41,
+            "type": "ActivityTaskFailed",
+            "activity": "DispatchConfig",
+            "failure_type": "EXECUTION_FENCE_REJECTED",
+            "failure": "adapter not called: execution fence is not held by this run"
+          },
+          {
+            "event_id": 45,
+            "type": "ActivityTaskScheduled",
+            "activity": "AdvanceExecutionClaim",
+            "claim_transition_to": "RELEASED"
+          },
+          {
+            "event_id": 47,
+            "type": "ActivityTaskFailed",
+            "activity": "AdvanceExecutionClaim",
+            "failure_type": "EXECUTION_CLAIM_REJECTED",
+            "failure": "execution does not hold the claim in a state that permits this transition"
+          },
+          {
+            "event_id": 51,
+            "type": "ActivityTaskScheduled",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 53,
+            "type": "ActivityTaskCompleted",
+            "activity": "RecordAuditTrail"
+          },
+          {
+            "event_id": 57,
+            "type": "WorkflowExecutionFailed",
+            "failure_type": "EXECUTION_CLAIM_REJECTED",
+            "failure": "execution fence not acquired; proposal not executed"
+          }
+        ],
+        "claim_reset_point": 20
+      },
+      "audit_trail": [
+        {
+          "phase": "WORKFLOW_REVALIDATION",
+          "verdict": "PASS",
+          "detail": "verdict=ALLOW reasons=ENVIRONMENT_ALLOWED policy_version=validation-v1 ingress_decision_id=dec_D2E2VIDWW2WLYSUS6SMYUEKTTG",
+          "recorded_at": "2026-10-06T08:42:01.0507922Z"
+        },
+        {
+          "phase": "EXECUTION_FENCE",
+          "verdict": "FAIL",
+          "detail": "adapter not called: released=false ingress_decision_id=dec_D2E2VIDWW2WLYSUS6SMYUEKTTG error=\"activity error (type: DispatchConfig, scheduledEventID: 39, startedEventID: 40, identity: 15396@LAPTOP-AJIS5RJH@): adapter not called: execution fence is not held by this run (type: EXECUTION_FENCE_REJECTED, retryable: false): execution does not hold the claim in a state that permits this transition\"",
+          "recorded_at": "2026-10-06T08:42:01.2004642Z"
+        }
+      ],
+      "decision_records": [
+        {
+          "decision_id": "dec_D2E2VIDWW2WLYSUS6SMYUEKTTG",
+          "stage": "INGRESS",
+          "agent_id": "agent-a",
+          "command": "UPDATE_CUSTOMER",
+          "target_id": "customer-gated",
+          "environment": "test",
+          "verdict": "ALLOW",
+          "reasons": [
+            "ENVIRONMENT_ALLOWED"
+          ],
+          "policy_version": "validation-v1",
+          "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+          "request_hash": "8ea35b7003b9a24f7342a7fdf14bf4058d2cfc5b342d4efbe5c314ba4ce0d477",
+          "workflow_id": "saga-TC08-084200-gated",
+          "recorded_at": "2026-10-06T08:42:00.7772865Z"
+        },
+        {
+          "decision_id": "wf_saga-TC08-084200-gated_4ece2193-3fd6-4d96-928d-756ee0b908af",
+          "stage": "WORKFLOW_REVALIDATION",
+          "agent_id": "agent-a",
+          "command": "UPDATE_CUSTOMER",
+          "target_id": "customer-gated",
+          "environment": "test",
+          "verdict": "ALLOW",
+          "reasons": [
+            "ENVIRONMENT_ALLOWED"
+          ],
+          "policy_version": "validation-v1",
+          "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+          "request_hash": "8ea35b7003b9a24f7342a7fdf14bf4058d2cfc5b342d4efbe5c314ba4ce0d477",
+          "workflow_id": "saga-TC08-084200-gated",
+          "recorded_at": "2026-10-06T08:42:01.0002328Z"
+        }
+      ]
+    }
+  ],
+  "sentrygate_result": "BLOCKED_EXECUTION",
+  "test_id": "TC08"
+}

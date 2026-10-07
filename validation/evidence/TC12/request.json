@@ -1,0 +1,193 @@
+{
+  "note": "API keys are never recorded. path=gateway is POST /v1/intercept; path=execution-boundary is direct Temporal access.",
+  "requests": [
+    {
+      "label": "agent-b update_customer(customer-123) via ingress",
+      "role": "attack",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-b",
+      "proposal": {
+        "id": "TC12-084206-update",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{}"
+      },
+      "sent_at": "2026-10-06T08:42:06.4712536Z",
+      "http_status": 403,
+      "response": {
+        "status": "rejected",
+        "verdict": "DENY",
+        "reasons": [
+          "COMMAND_NOT_PERMITTED_FOR_AGENT"
+        ],
+        "decision_id": "dec_3MBK2MCNLS2CWTTAOD6GJGFYRX",
+        "proposal_id": "TC12-084206-update"
+      },
+      "sentrygate_outcome": "DENIED_AT_INGRESS",
+      "sentrygate_detail": "verdict=DENY reasons=COMMAND_NOT_PERMITTED_FOR_AGENT decision_id=dec_3MBK2MCNLS2CWTTAOD6GJGFYRX"
+    },
+    {
+      "label": "agent-b export_customer(customer-123) via ingress",
+      "role": "attack",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-b",
+      "proposal": {
+        "id": "TC12-084206-export",
+        "type": "EXPORT_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{}"
+      },
+      "sent_at": "2026-10-06T08:42:06.4734487Z",
+      "http_status": 403,
+      "response": {
+        "status": "rejected",
+        "verdict": "DENY",
+        "reasons": [
+          "COMMAND_NOT_PERMITTED_FOR_AGENT"
+        ],
+        "decision_id": "dec_HK2PXKQXIJ4VDA6G2BTBTPGQTK",
+        "proposal_id": "TC12-084206-export"
+      },
+      "sentrygate_outcome": "DENIED_AT_INGRESS",
+      "sentrygate_detail": "verdict=DENY reasons=COMMAND_NOT_PERMITTED_FOR_AGENT decision_id=dec_HK2PXKQXIJ4VDA6G2BTBTPGQTK"
+    },
+    {
+      "label": "agent-b delete_customer(customer-123) via ingress",
+      "role": "attack",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-b",
+      "proposal": {
+        "id": "TC12-084206-delete",
+        "type": "DELETE_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{}"
+      },
+      "sent_at": "2026-10-06T08:42:06.4750058Z",
+      "http_status": 403,
+      "response": {
+        "status": "rejected",
+        "verdict": "DENY",
+        "reasons": [
+          "COMMAND_NOT_PERMITTED_FOR_AGENT"
+        ],
+        "decision_id": "dec_IOGKHOO3BJPWGRQANSFK5DLIMT",
+        "proposal_id": "TC12-084206-delete"
+      },
+      "sentrygate_outcome": "DENIED_AT_INGRESS",
+      "sentrygate_detail": "verdict=DENY reasons=COMMAND_NOT_PERMITTED_FOR_AGENT decision_id=dec_IOGKHOO3BJPWGRQANSFK5DLIMT"
+    },
+    {
+      "label": "agent-b drop_database(customer-123) via ingress",
+      "role": "attack",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-b",
+      "proposal": {
+        "id": "TC12-084206-drop",
+        "type": "DROP_DATABASE",
+        "target_id": "customer-123",
+        "payload": "{}"
+      },
+      "sent_at": "2026-10-06T08:42:06.476729Z",
+      "http_status": 403,
+      "response": {
+        "status": "rejected",
+        "verdict": "DENY",
+        "reasons": [
+          "COMMAND_UNKNOWN"
+        ],
+        "decision_id": "dec_PLYANYAXRH6XPNNXKMSUZ537LB",
+        "proposal_id": "TC12-084206-drop"
+      },
+      "sentrygate_outcome": "DENIED_AT_INGRESS",
+      "sentrygate_detail": "verdict=DENY reasons=COMMAND_UNKNOWN decision_id=dec_PLYANYAXRH6XPNNXKMSUZ537LB"
+    },
+    {
+      "label": "agent-b read_customer(customer-123) (authorized, then held)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-b",
+      "proposal": {
+        "id": "TC12-084206-read",
+        "type": "READ_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{}"
+      },
+      "workflow_id": "saga-TC12-084206-read",
+      "run_id": "01a11060-9114-71d0-b0fb-4336104e56b1",
+      "sent_at": "2026-10-06T08:42:06.4811129Z",
+      "http_status": 200,
+      "response": {
+        "status": "accepted",
+        "verdict": "ALLOW",
+        "reasons": [
+          "ENVIRONMENT_ALLOWED"
+        ],
+        "decision_id": "dec_JAUP3LQSWYZM2ILVV7REZDNZYF",
+        "proposal_id": "TC12-084206-read",
+        "workflow_id": "saga-TC12-084206-read",
+        "run_id": "01a11060-9114-71d0-b0fb-4336104e56b1"
+      },
+      "workflow_outcome": {
+        "workflow_id": "saga-TC12-084206-read",
+        "run_id": "01a11060-9114-71d0-b0fb-4336104e56b1",
+        "status": "TERMINATED"
+      },
+      "sentrygate_outcome": "TERMINATED_BEFORE_EXECUTION",
+      "sentrygate_detail": "run terminated"
+    },
+    {
+      "label": "setup: terminate the authorized run before any worker runs it",
+      "role": "setup",
+      "path": "execution-boundary",
+      "action": "Temporal TerminateWorkflowExecution",
+      "agent_id": "",
+      "workflow_id": "saga-TC12-084206-read",
+      "run_id": "01a11060-9114-71d0-b0fb-4336104e56b1",
+      "sent_at": "2026-10-06T08:42:06.4857669Z",
+      "sentrygate_outcome": "N/A (not an execution attempt)"
+    },
+    {
+      "label": "escalate agent-b's read authorization to delete_customer",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal StartWorkflowExecution",
+      "agent_id": "agent-b",
+      "proposal": {
+        "id": "TC12-084206-read",
+        "type": "DELETE_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{}"
+      },
+      "execution_request": {
+        "agent_id": "agent-b",
+        "proposal": {
+          "id": "TC12-084206-read",
+          "type": "DELETE_CUSTOMER",
+          "target_id": "customer-123",
+          "payload": "{}"
+        },
+        "ingress_decision_id": "dec_JAUP3LQSWYZM2ILVV7REZDNZYF",
+        "request_hash": "2649d8a10203695fc69364e6ef5c91d7665b97a9bd214b20effbf062bb61df6e"
+      },
+      "workflow_id": "saga-TC12-084206-read",
+      "run_id": "01a11060-911b-79e6-b5a0-5ec5b2be5bc9",
+      "sent_at": "2026-10-06T08:42:06.4910103Z",
+      "workflow_outcome": {
+        "workflow_id": "saga-TC12-084206-read",
+        "run_id": "01a11060-911b-79e6-b5a0-5ec5b2be5bc9",
+        "status": "FAILED",
+        "error_type": "INGRESS_DECISION_INVALID",
+        "reason": "INGRESS_DECISION_HASH_MISMATCH",
+        "message": "execution rejected: INGRESS_DECISION_HASH_MISMATCH (type: INGRESS_DECISION_INVALID, retryable: false)"
+      },
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "INGRESS_DECISION_INVALID INGRESS_DECISION_HASH_MISMATCH"
+    }
+  ],
+  "test_id": "TC12"
+}

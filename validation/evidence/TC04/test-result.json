@@ -1,0 +1,140 @@
+{
+  "test_id": "TC04",
+  "test_name": "Request mutation",
+  "kind": "attack",
+  "objective": "The arguments executed must be the arguments authorized.",
+  "method": [
+    "agent-a obtains an unused ALLOW for update_customer(customer-123, tier=silver).",
+    "The attacker starts the workflow with the same decision and workflow ID but arguments {email: attacker, tier: platinum}, copying the authorized request hash.",
+    "Then again with the request hash recomputed for the mutated arguments."
+  ],
+  "expected": "Both runs fail INGRESS_DECISION_INVALID (INGRESS_DECISION_HASH_MISMATCH): the workflow recomputes the hash from the proposal it was given and compares it with the recorded decision. No tools/call.",
+  "status": "VERIFIED",
+  "f5_result": "NOT_APPLICABLE",
+  "f5_provider": "mock (no F5 in path)",
+  "f5_observation_source": "MOCK",
+  "sentrygate_result": "BLOCKED_EXECUTION",
+  "infrastructure_result": "NOT_EXECUTED",
+  "mutation_count": 0,
+  "expected_mutation_count": 0,
+  "tool_invocations": 0,
+  "checks": [
+    {
+      "name": "execution claim on the held decision",
+      "expected": "NONE",
+      "observed": "NONE",
+      "result": "PASS"
+    },
+    {
+      "name": "customer-123 record unchanged",
+      "expected": "version=1 deleted=false",
+      "observed": "version=1 deleted=false",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: agent-a update_customer(customer-123, tier=silver) (authorized, then held)",
+      "expected": "TERMINATED_BEFORE_EXECUTION",
+      "observed": "TERMINATED_BEFORE_EXECUTION run terminated",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: mutated arguments, authorized request hash copied",
+      "expected": "REFUSED_AT_EXECUTION_BOUNDARY (INGRESS_DECISION_HASH_MISMATCH)",
+      "observed": "REFUSED_AT_EXECUTION_BOUNDARY INGRESS_DECISION_INVALID INGRESS_DECISION_HASH_MISMATCH",
+      "result": "PASS"
+    },
+    {
+      "name": "SentryGate outcome: mutated arguments, request hash recomputed",
+      "expected": "REFUSED_AT_EXECUTION_BOUNDARY (INGRESS_DECISION_HASH_MISMATCH)",
+      "observed": "REFUSED_AT_EXECUTION_BOUNDARY INGRESS_DECISION_INVALID INGRESS_DECISION_HASH_MISMATCH",
+      "result": "PASS"
+    },
+    {
+      "name": "infrastructure mutation count (test MCP server database)",
+      "expected": "0",
+      "observed": "0",
+      "result": "PASS"
+    },
+    {
+      "name": "no idempotency key mutated the target more than once",
+      "expected": "none",
+      "observed": "none",
+      "result": "PASS"
+    }
+  ],
+  "attempts": [
+    {
+      "label": "agent-a update_customer(customer-123, tier=silver) (authorized, then held)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "sentrygate_outcome": "TERMINATED_BEFORE_EXECUTION",
+      "sentrygate_detail": "run terminated",
+      "f5_authorization_decision": "NOT_OBSERVED",
+      "f5_observation_source": "MOCK"
+    },
+    {
+      "label": "setup: terminate the authorized run before any worker runs it",
+      "role": "setup",
+      "path": "execution-boundary",
+      "action": "Temporal TerminateWorkflowExecution",
+      "agent_id": "",
+      "sentrygate_outcome": "N/A (not an execution attempt)"
+    },
+    {
+      "label": "mutated arguments, authorized request hash copied",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal StartWorkflowExecution",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "INGRESS_DECISION_INVALID INGRESS_DECISION_HASH_MISMATCH"
+    },
+    {
+      "label": "mutated arguments, request hash recomputed",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal StartWorkflowExecution",
+      "agent_id": "agent-a",
+      "tool": "update_customer",
+      "target": "customer-123",
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "INGRESS_DECISION_INVALID INGRESS_DECISION_HASH_MISMATCH"
+    }
+  ],
+  "notes": [
+    "F5 result NOT_APPLICABLE: every attack request in this test was sent to the execution boundary (Temporal) directly, a path that does not pass through a gateway in front of SentryGate ingress."
+  ],
+  "limitations": [],
+  "environment": {
+    "arch": "amd64",
+    "go_version": "go1.27.0",
+    "ingress_path": "test agent -> SentryGate proxy (direct, no gateway)",
+    "mcp_server": "validation/cmd/mcp-test-server (disposable SQLite database per test)",
+    "os": "windows",
+    "sentrygate_worker_adapter": "mcp (workflows.MCPAdapter, SENTRYGATE_ADAPTER=mcp)",
+    "source_revision": "a2fa280747b81037ca4769997b3c86999b9421b8 (with uncommitted changes)",
+    "temporal_mode": "Temporal CLI dev server (server start-dev, in-memory), started by the harness",
+    "temporal_version": "temporal version 1.9.1 (Server 1.32.0, UI 2.54.1)",
+    "worker_mcp_path": "SentryGate worker -> test MCP server (direct, no gateway)"
+  },
+  "started_at": "2026-10-06T08:41:51Z",
+  "finished_at": "2026-10-06T08:41:52Z",
+  "evidence_path": "validation/evidence/TC04",
+  "files": [
+    "after-state.json",
+    "authorization.json",
+    "before-state.json",
+    "execution-count.json",
+    "execution.json",
+    "infrastructure-state.json",
+    "request.json",
+    "sentrygate-decision.json",
+    "test-result.json"
+  ]
+}

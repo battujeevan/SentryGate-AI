@@ -1,0 +1,126 @@
+{
+  "note": "API keys are never recorded. path=gateway is POST /v1/intercept; path=execution-boundary is direct Temporal access.",
+  "requests": [
+    {
+      "label": "agent-a update_customer(customer-123, tier=silver) (authorized, then held)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "proposal": {
+        "id": "TC04-084151-update",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{\"tier\":\"silver\"}"
+      },
+      "workflow_id": "saga-TC04-084151-update",
+      "run_id": "01a11060-5753-7741-b4e1-9b6c91e741c8",
+      "sent_at": "2026-10-06T08:41:51.6956896Z",
+      "http_status": 200,
+      "response": {
+        "status": "accepted",
+        "verdict": "ALLOW",
+        "reasons": [
+          "ENVIRONMENT_ALLOWED"
+        ],
+        "decision_id": "dec_S4G74BXAUTLONPTWOTGMZK7VJE",
+        "proposal_id": "TC04-084151-update",
+        "workflow_id": "saga-TC04-084151-update",
+        "run_id": "01a11060-5753-7741-b4e1-9b6c91e741c8"
+      },
+      "workflow_outcome": {
+        "workflow_id": "saga-TC04-084151-update",
+        "run_id": "01a11060-5753-7741-b4e1-9b6c91e741c8",
+        "status": "TERMINATED"
+      },
+      "sentrygate_outcome": "TERMINATED_BEFORE_EXECUTION",
+      "sentrygate_detail": "run terminated"
+    },
+    {
+      "label": "setup: terminate the authorized run before any worker runs it",
+      "role": "setup",
+      "path": "execution-boundary",
+      "action": "Temporal TerminateWorkflowExecution",
+      "agent_id": "",
+      "workflow_id": "saga-TC04-084151-update",
+      "run_id": "01a11060-5753-7741-b4e1-9b6c91e741c8",
+      "sent_at": "2026-10-06T08:41:51.7012999Z",
+      "sentrygate_outcome": "N/A (not an execution attempt)"
+    },
+    {
+      "label": "mutated arguments, authorized request hash copied",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal StartWorkflowExecution",
+      "agent_id": "agent-a",
+      "proposal": {
+        "id": "TC04-084151-update",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{\"email\":\"attacker@example.test\",\"tier\":\"platinum\"}"
+      },
+      "execution_request": {
+        "agent_id": "agent-a",
+        "proposal": {
+          "id": "TC04-084151-update",
+          "type": "UPDATE_CUSTOMER",
+          "target_id": "customer-123",
+          "payload": "{\"email\":\"attacker@example.test\",\"tier\":\"platinum\"}"
+        },
+        "ingress_decision_id": "dec_S4G74BXAUTLONPTWOTGMZK7VJE",
+        "request_hash": "e9cab10d6e6c018002e1a69d27ea1a4993dbe7d72f4bc0a87f955d2abedfd169"
+      },
+      "workflow_id": "saga-TC04-084151-update",
+      "run_id": "01a11060-575b-7ea4-85ee-7324d64de839",
+      "sent_at": "2026-10-06T08:41:51.7073996Z",
+      "workflow_outcome": {
+        "workflow_id": "saga-TC04-084151-update",
+        "run_id": "01a11060-575b-7ea4-85ee-7324d64de839",
+        "status": "FAILED",
+        "error_type": "INGRESS_DECISION_INVALID",
+        "reason": "INGRESS_DECISION_HASH_MISMATCH",
+        "message": "execution rejected: INGRESS_DECISION_HASH_MISMATCH (type: INGRESS_DECISION_INVALID, retryable: false)"
+      },
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "INGRESS_DECISION_INVALID INGRESS_DECISION_HASH_MISMATCH"
+    },
+    {
+      "label": "mutated arguments, request hash recomputed",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal StartWorkflowExecution",
+      "agent_id": "agent-a",
+      "proposal": {
+        "id": "TC04-084151-update",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{\"email\":\"attacker@example.test\",\"tier\":\"platinum\"}"
+      },
+      "execution_request": {
+        "agent_id": "agent-a",
+        "proposal": {
+          "id": "TC04-084151-update",
+          "type": "UPDATE_CUSTOMER",
+          "target_id": "customer-123",
+          "payload": "{\"email\":\"attacker@example.test\",\"tier\":\"platinum\"}"
+        },
+        "ingress_decision_id": "dec_S4G74BXAUTLONPTWOTGMZK7VJE",
+        "request_hash": "d9c9e0c4e9faa86601fb869109080f33aa22185489d484fdd579f7ffd3d4ff48"
+      },
+      "workflow_id": "saga-TC04-084151-update",
+      "run_id": "01a11060-57ca-763f-92c5-b3e4be98921f",
+      "sent_at": "2026-10-06T08:41:51.8178447Z",
+      "workflow_outcome": {
+        "workflow_id": "saga-TC04-084151-update",
+        "run_id": "01a11060-57ca-763f-92c5-b3e4be98921f",
+        "status": "FAILED",
+        "error_type": "INGRESS_DECISION_INVALID",
+        "reason": "INGRESS_DECISION_HASH_MISMATCH",
+        "message": "execution rejected: INGRESS_DECISION_HASH_MISMATCH (type: INGRESS_DECISION_INVALID, retryable: false)"
+      },
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "INGRESS_DECISION_INVALID INGRESS_DECISION_HASH_MISMATCH"
+    }
+  ],
+  "test_id": "TC04"
+}

@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -56,10 +58,16 @@ func main() {
 	}
 	defer c.Close()
 
+	adapter, err := newAdapter(cfg)
+	if err != nil {
+		log.Error("infrastructure adapter configuration invalid", "adapter", cfg.Adapter, "error", err)
+		os.Exit(1)
+	}
+
 	w := worker.New(c, cfg.TaskQueue, worker.Options{})
 	w.RegisterWorkflow(workflows.SentryGateSagaWorkflow)
 	w.RegisterActivity(&workflows.DecisionActivities{Policy: policyLoader, Store: auditStore, Claims: auditStore})
-	w.RegisterActivity(&workflows.InfrastructureActivities{Adapter: workflows.NewSimulatedAdapter(), Claims: auditStore})
+	w.RegisterActivity(&workflows.InfrastructureActivities{Adapter: adapter, Claims: auditStore})
 	w.RegisterActivity(&workflows.AuditActivities{Store: auditStore})
 
 	go serveWorkerHealth(auditStore, log)
@@ -67,6 +75,7 @@ func main() {
 	pol := policyLoader.Current()
 	log.Info("temporal worker started",
 		"queue", cfg.TaskQueue,
+		"adapter", cfg.Adapter,
 		"host", cfg.TemporalHostPort,
 		"namespace", cfg.TemporalNamespace,
 		"audit_db", cfg.AuditDBPath,
@@ -78,6 +87,20 @@ func main() {
 		log.Error("worker terminated", "error", err)
 		os.Exit(1)
 	}
+}
+
+// newAdapter returns the infrastructure adapter selected by SENTRYGATE_ADAPTER.
+func newAdapter(cfg config.Config) (workflows.Adapter, error) {
+	switch cfg.Adapter {
+	case "simulated":
+		return workflows.NewSimulatedAdapter(), nil
+	case "mcp":
+		if cfg.MCPURL == "" {
+			return nil, errors.New("SENTRYGATE_MCP_URL is required with SENTRYGATE_ADAPTER=mcp")
+		}
+		return &workflows.MCPAdapter{Endpoint: cfg.MCPURL, TargetArgument: cfg.MCPTargetArgument}, nil
+	}
+	return nil, fmt.Errorf("unknown SENTRYGATE_ADAPTER %q (want simulated or mcp)", cfg.Adapter)
 }
 
 func serveWorkerHealth(store *audit.Store, log *slog.Logger) {

@@ -1,0 +1,14 @@
+{
+  "counts": {
+    "invocations": 0,
+    "applied": 0,
+    "mutations": 0,
+    "invocations_by_tool": {},
+    "invocations_by_target": {},
+    "invocations_by_idempotency_key": {},
+    "mutations_by_target": {}
+  },
+  "executions": [],
+  "note": "Every tools/call that reached the test MCP server, in order. The server never deduplicates.",
+  "test_id": "TC02"
+}

@@ -1,0 +1,38 @@
+{
+  "counts": {
+    "invocations": 1,
+    "applied": 1,
+    "mutations": 0,
+    "invocations_by_tool": {
+      "read_customer": 1
+    },
+    "invocations_by_target": {
+      "customer-123": 1
+    },
+    "invocations_by_idempotency_key": {
+      "sentrygate.exec.v1:dec_FXSC3AVQGLZIHJGIJUP4CV7WVN": 1
+    },
+    "mutations_by_target": {
+      "customer-123": 0
+    }
+  },
+  "executions": [
+    {
+      "execution_id": "x000001",
+      "timestamp": "2026-10-06T08:42:04.1853837Z",
+      "agent_id": "agent-a",
+      "tool": "read_customer",
+      "target": "customer-123",
+      "request": "{\"customer_id\":\"customer-123\"}",
+      "request_hash": "ba93457e5358e3ce0e5d820b7adb2eda89c65f9dd163c260fe84637d94db6004",
+      "sentrygate_request_hash": "9c708eaaf3430a1b7c54e7cdac383a2ad4a7bb2c8bab2a56e946b39c51c98934",
+      "idempotency_key": "sentrygate.exec.v1:dec_FXSC3AVQGLZIHJGIJUP4CV7WVN",
+      "proposal_id": "TC10-084203-read",
+      "result": "APPLIED",
+      "detail": "customer read",
+      "mutation_count": 0
+    }
+  ],
+  "note": "Every tools/call that reached the test MCP server, in order. The server never deduplicates.",
+  "test_id": "TC10"
+}

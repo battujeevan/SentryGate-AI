@@ -1,0 +1,215 @@
+{
+  "note": "API keys are never recorded. path=gateway is POST /v1/intercept; path=execution-boundary is direct Temporal access.",
+  "requests": [
+    {
+      "label": "setup: agent-b update_customer(customer-123) (denied)",
+      "role": "setup",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-b",
+      "proposal": {
+        "id": "TC10-084203-denied",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{\"tier\":\"gold\"}"
+      },
+      "sent_at": "2026-10-06T08:42:04.1333394Z",
+      "http_status": 403,
+      "response": {
+        "status": "rejected",
+        "verdict": "DENY",
+        "reasons": [
+          "COMMAND_NOT_PERMITTED_FOR_AGENT"
+        ],
+        "decision_id": "dec_MHKEEGPYDMFC2LSGC4GJP3TIAM",
+        "proposal_id": "TC10-084203-denied"
+      },
+      "sentrygate_outcome": "DENIED_AT_INGRESS",
+      "sentrygate_detail": "verdict=DENY reasons=COMMAND_NOT_PERMITTED_FOR_AGENT decision_id=dec_MHKEEGPYDMFC2LSGC4GJP3TIAM"
+    },
+    {
+      "label": "setup: agent-a read_customer(customer-123)",
+      "role": "setup",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "proposal": {
+        "id": "TC10-084203-read",
+        "type": "READ_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{}"
+      },
+      "workflow_id": "saga-TC10-084203-read",
+      "run_id": "01a11060-87eb-74d1-8557-175487b97c54",
+      "sent_at": "2026-10-06T08:42:04.1363245Z",
+      "http_status": 200,
+      "response": {
+        "status": "accepted",
+        "verdict": "ALLOW",
+        "reasons": [
+          "ENVIRONMENT_ALLOWED"
+        ],
+        "decision_id": "dec_FXSC3AVQGLZIHJGIJUP4CV7WVN",
+        "proposal_id": "TC10-084203-read",
+        "workflow_id": "saga-TC10-084203-read",
+        "run_id": "01a11060-87eb-74d1-8557-175487b97c54"
+      },
+      "workflow_outcome": {
+        "workflow_id": "saga-TC10-084203-read",
+        "run_id": "01a11060-87eb-74d1-8557-175487b97c54",
+        "status": "COMPLETED"
+      },
+      "sentrygate_outcome": "EXECUTED",
+      "sentrygate_detail": "workflow completed"
+    },
+    {
+      "label": "fabricated decision ID",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal StartWorkflowExecution",
+      "agent_id": "agent-a",
+      "proposal": {
+        "id": "TC10-084203-forged",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{\"tier\":\"platinum\"}"
+      },
+      "execution_request": {
+        "agent_id": "agent-a",
+        "proposal": {
+          "id": "TC10-084203-forged",
+          "type": "UPDATE_CUSTOMER",
+          "target_id": "customer-123",
+          "payload": "{\"tier\":\"platinum\"}"
+        },
+        "ingress_decision_id": "dec_IB6DNCMCIMZK22SAH3JVJW6SWG",
+        "request_hash": "a6560ff892020f597edf4cf96a4e9bdcba16cfd4613ba4a6a72d20bfc33bbff8"
+      },
+      "workflow_id": "saga-TC10-084203-forged",
+      "run_id": "01a11060-8838-7e8d-bbe5-0646cc2165d1",
+      "sent_at": "2026-10-06T08:42:04.2142398Z",
+      "workflow_outcome": {
+        "workflow_id": "saga-TC10-084203-forged",
+        "run_id": "01a11060-8838-7e8d-bbe5-0646cc2165d1",
+        "status": "FAILED",
+        "error_type": "INGRESS_DECISION_INVALID",
+        "reason": "INGRESS_DECISION_NOT_FOUND",
+        "message": "execution rejected: INGRESS_DECISION_NOT_FOUND (type: INGRESS_DECISION_INVALID, retryable: false)"
+      },
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "INGRESS_DECISION_INVALID INGRESS_DECISION_NOT_FOUND"
+    },
+    {
+      "label": "no decision ID",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal StartWorkflowExecution",
+      "agent_id": "agent-a",
+      "proposal": {
+        "id": "TC10-084203-forged",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{\"tier\":\"platinum\"}"
+      },
+      "execution_request": {
+        "agent_id": "agent-a",
+        "proposal": {
+          "id": "TC10-084203-forged",
+          "type": "UPDATE_CUSTOMER",
+          "target_id": "customer-123",
+          "payload": "{\"tier\":\"platinum\"}"
+        },
+        "ingress_decision_id": "",
+        "request_hash": "a6560ff892020f597edf4cf96a4e9bdcba16cfd4613ba4a6a72d20bfc33bbff8"
+      },
+      "workflow_id": "saga-TC10-084203-forged",
+      "run_id": "01a11060-8855-7514-a055-b9484a343ba0",
+      "sent_at": "2026-10-06T08:42:04.2447717Z",
+      "workflow_outcome": {
+        "workflow_id": "saga-TC10-084203-forged",
+        "run_id": "01a11060-8855-7514-a055-b9484a343ba0",
+        "status": "FAILED",
+        "error_type": "INGRESS_DECISION_INVALID",
+        "reason": "INGRESS_DECISION_NOT_FOUND",
+        "message": "execution rejected: INGRESS_DECISION_NOT_FOUND (type: INGRESS_DECISION_INVALID, retryable: false)"
+      },
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "INGRESS_DECISION_INVALID INGRESS_DECISION_NOT_FOUND"
+    },
+    {
+      "label": "agent-b's DENY decision",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal StartWorkflowExecution",
+      "agent_id": "agent-b",
+      "proposal": {
+        "id": "TC10-084203-denied",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{\"tier\":\"gold\"}"
+      },
+      "execution_request": {
+        "agent_id": "agent-b",
+        "proposal": {
+          "id": "TC10-084203-denied",
+          "type": "UPDATE_CUSTOMER",
+          "target_id": "customer-123",
+          "payload": "{\"tier\":\"gold\"}"
+        },
+        "ingress_decision_id": "dec_MHKEEGPYDMFC2LSGC4GJP3TIAM",
+        "request_hash": "8cd89cc052a8de814b77c60d4417b06415cb4c2ba3c1b31bbe16b6f50f650dcb"
+      },
+      "workflow_id": "saga-TC10-084203-denied",
+      "run_id": "01a11060-886f-7e31-82a3-0fb5cc25f578",
+      "sent_at": "2026-10-06T08:42:04.2713641Z",
+      "workflow_outcome": {
+        "workflow_id": "saga-TC10-084203-denied",
+        "run_id": "01a11060-886f-7e31-82a3-0fb5cc25f578",
+        "status": "FAILED",
+        "error_type": "INGRESS_DECISION_INVALID",
+        "reason": "INGRESS_DECISION_NOT_ALLOW",
+        "message": "execution rejected: INGRESS_DECISION_NOT_ALLOW (type: INGRESS_DECISION_INVALID, retryable: false)"
+      },
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "INGRESS_DECISION_INVALID INGRESS_DECISION_NOT_ALLOW"
+    },
+    {
+      "label": "the read's WORKFLOW_REVALIDATION decision",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal StartWorkflowExecution",
+      "agent_id": "agent-a",
+      "proposal": {
+        "id": "TC10-084203-read",
+        "type": "READ_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{}"
+      },
+      "execution_request": {
+        "agent_id": "agent-a",
+        "proposal": {
+          "id": "TC10-084203-read",
+          "type": "READ_CUSTOMER",
+          "target_id": "customer-123",
+          "payload": "{}"
+        },
+        "ingress_decision_id": "wf_saga-TC10-084203-read_01a11060-87eb-74d1-8557-175487b97c54",
+        "request_hash": "9c708eaaf3430a1b7c54e7cdac383a2ad4a7bb2c8bab2a56e946b39c51c98934"
+      },
+      "workflow_id": "saga-TC10-084203-read",
+      "run_id": "01a11060-88ee-7953-918b-96053b859f0b",
+      "sent_at": "2026-10-06T08:42:04.3980056Z",
+      "workflow_outcome": {
+        "workflow_id": "saga-TC10-084203-read",
+        "run_id": "01a11060-88ee-7953-918b-96053b859f0b",
+        "status": "FAILED",
+        "error_type": "INGRESS_DECISION_INVALID",
+        "reason": "INGRESS_DECISION_WRONG_STAGE",
+        "message": "execution rejected: INGRESS_DECISION_WRONG_STAGE (type: INGRESS_DECISION_INVALID, retryable: false)"
+      },
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "INGRESS_DECISION_INVALID INGRESS_DECISION_WRONG_STAGE"
+    }
+  ],
+  "test_id": "TC10"
+}

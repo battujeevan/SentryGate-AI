@@ -1,0 +1,152 @@
+{
+  "note": "API keys are never recorded. path=gateway is POST /v1/intercept; path=execution-boundary is direct Temporal access.",
+  "requests": [
+    {
+      "label": "agent-a update_customer(customer-999) via ingress",
+      "role": "attack",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "proposal": {
+        "id": "TC03-084150-unregistered",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-999",
+        "payload": "{\"tier\":\"gold\"}"
+      },
+      "sent_at": "2026-10-06T08:41:50.6204182Z",
+      "http_status": 403,
+      "response": {
+        "status": "rejected",
+        "verdict": "DENY",
+        "reasons": [
+          "TARGET_UNREGISTERED"
+        ],
+        "decision_id": "dec_4QNVV35BCE3SJW4IJOLZT4XXJ7",
+        "proposal_id": "TC03-084150-unregistered"
+      },
+      "sentrygate_outcome": "DENIED_AT_INGRESS",
+      "sentrygate_detail": "verdict=DENY reasons=TARGET_UNREGISTERED decision_id=dec_4QNVV35BCE3SJW4IJOLZT4XXJ7"
+    },
+    {
+      "label": "agent-a update_customer(customer-123) (authorized, then held)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "proposal": {
+        "id": "TC03-084150-update",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{\"tier\":\"silver\"}"
+      },
+      "workflow_id": "saga-TC03-084150-update",
+      "run_id": "01a11060-5326-703e-b08f-75206c0e4c41",
+      "sent_at": "2026-10-06T08:41:50.6265324Z",
+      "http_status": 200,
+      "response": {
+        "status": "accepted",
+        "verdict": "ALLOW",
+        "reasons": [
+          "ENVIRONMENT_ALLOWED"
+        ],
+        "decision_id": "dec_CKBINZLJTWOFO4OHMBJTHBGB7C",
+        "proposal_id": "TC03-084150-update",
+        "workflow_id": "saga-TC03-084150-update",
+        "run_id": "01a11060-5326-703e-b08f-75206c0e4c41"
+      },
+      "workflow_outcome": {
+        "workflow_id": "saga-TC03-084150-update",
+        "run_id": "01a11060-5326-703e-b08f-75206c0e4c41",
+        "status": "TERMINATED"
+      },
+      "sentrygate_outcome": "TERMINATED_BEFORE_EXECUTION",
+      "sentrygate_detail": "run terminated"
+    },
+    {
+      "label": "setup: terminate the authorized run before any worker runs it",
+      "role": "setup",
+      "path": "execution-boundary",
+      "action": "Temporal TerminateWorkflowExecution",
+      "agent_id": "",
+      "workflow_id": "saga-TC03-084150-update",
+      "run_id": "01a11060-5326-703e-b08f-75206c0e4c41",
+      "sent_at": "2026-10-06T08:41:50.6315983Z",
+      "sentrygate_outcome": "N/A (not an execution attempt)"
+    },
+    {
+      "label": "substitute target customer-456 for customer-123",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal StartWorkflowExecution",
+      "agent_id": "agent-a",
+      "proposal": {
+        "id": "TC03-084150-update",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-456",
+        "payload": "{\"tier\":\"silver\"}"
+      },
+      "execution_request": {
+        "agent_id": "agent-a",
+        "proposal": {
+          "id": "TC03-084150-update",
+          "type": "UPDATE_CUSTOMER",
+          "target_id": "customer-456",
+          "payload": "{\"tier\":\"silver\"}"
+        },
+        "ingress_decision_id": "dec_CKBINZLJTWOFO4OHMBJTHBGB7C",
+        "request_hash": "3f599e941593547b1f30fe9b24feb931ab1576c31f6c21726bb3611f64dd511c"
+      },
+      "workflow_id": "saga-TC03-084150-update",
+      "run_id": "01a11060-532b-746c-ad4a-86e5f73f32bd",
+      "sent_at": "2026-10-06T08:41:50.6352899Z",
+      "workflow_outcome": {
+        "workflow_id": "saga-TC03-084150-update",
+        "run_id": "01a11060-532b-746c-ad4a-86e5f73f32bd",
+        "status": "FAILED",
+        "error_type": "INGRESS_DECISION_INVALID",
+        "reason": "INGRESS_DECISION_HASH_MISMATCH",
+        "message": "execution rejected: INGRESS_DECISION_HASH_MISMATCH (type: INGRESS_DECISION_INVALID, retryable: false)"
+      },
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "INGRESS_DECISION_INVALID INGRESS_DECISION_HASH_MISMATCH"
+    },
+    {
+      "label": "agent-a update_customer(customer-123) with customer_id=customer-456 in the arguments",
+      "role": "attack",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "proposal": {
+        "id": "TC03-084150-smuggle",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{\"customer_id\":\"customer-456\",\"tier\":\"gold\"}"
+      },
+      "workflow_id": "saga-TC03-084150-smuggle",
+      "run_id": "01a11060-539b-73dd-aa0a-d517c4c59d9a",
+      "sent_at": "2026-10-06T08:41:50.7445034Z",
+      "http_status": 200,
+      "response": {
+        "status": "accepted",
+        "verdict": "ALLOW",
+        "reasons": [
+          "ENVIRONMENT_ALLOWED"
+        ],
+        "decision_id": "dec_XUHW4QJ2WYN7SDCAFKLVMRJON6",
+        "proposal_id": "TC03-084150-smuggle",
+        "workflow_id": "saga-TC03-084150-smuggle",
+        "run_id": "01a11060-539b-73dd-aa0a-d517c4c59d9a"
+      },
+      "workflow_outcome": {
+        "workflow_id": "saga-TC03-084150-smuggle",
+        "run_id": "01a11060-539b-73dd-aa0a-d517c4c59d9a",
+        "status": "FAILED",
+        "error_type": "DISPATCH_FAILED",
+        "message": "dispatch failed: mcp: not sent: payload sets the target argument \"customer_id\"; the target comes only from the authorized proposal (type: DISPATCH_FAILED, retryable: false)"
+      },
+      "sentrygate_outcome": "REFUSED_BY_ADAPTER",
+      "sentrygate_detail": "DISPATCH_FAILED: no tools/call reached the MCP server; dispatch failed: mcp: not sent: payload sets the target argument \"customer_id\"; the target comes only from the authorized proposal (type: DISPATCH_FAILED, retryable: false)"
+    }
+  ],
+  "test_id": "TC03"
+}

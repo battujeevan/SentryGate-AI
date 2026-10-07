@@ -1,0 +1,34 @@
+# Validation policy V2: identical to V1 except that agent-a may no longer
+# UPDATE_CUSTOMER. Used by TC05 (policy change between authorization and
+# execution).
+version: "validation-v2"
+max_parallel_tasks: 16
+
+environments:
+  test: allow
+
+commands:
+  - READ_CUSTOMER
+  - UPDATE_CUSTOMER
+  - EXPORT_CUSTOMER
+  - DELETE_CUSTOMER
+
+agents:
+  - id: agent-a
+    commands: [READ_CUSTOMER]
+  - id: agent-b
+    commands: [READ_CUSTOMER]
+
+targets:
+  - id: customer-123
+    environment: test
+    protected: false
+  - id: customer-456
+    environment: test
+    protected: false
+  - id: customer-lost-response
+    environment: test
+    protected: false
+  - id: customer-gated
+    environment: test
+    protected: false

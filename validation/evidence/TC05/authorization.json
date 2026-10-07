@@ -1,0 +1,124 @@
+{
+  "f5_observation_source": "MOCK",
+  "f5_observations": [
+    {
+      "request_label": "agent-a update_customer(customer-123) under validation-v1, queued",
+      "role": "attack",
+      "correlation": {
+        "test_id": "TC05",
+        "request_label": "agent-a update_customer(customer-123) under validation-v1, queued",
+        "proposal_id": "TC05-084152-v1",
+        "agent_id": "agent-a",
+        "tool": "update_customer",
+        "target": "customer-123",
+        "sent_at": "2026-10-06T08:41:52.7261565Z"
+      },
+      "observation": {
+        "source": "MOCK",
+        "provider": "mock (no F5 in path)",
+        "request_id": "MOCK",
+        "agent_identity": "MOCK",
+        "tool": "MOCK",
+        "target": "MOCK",
+        "authorization_decision": "NOT_OBSERVED",
+        "policy_identifier": "MOCK",
+        "timestamp": "MOCK",
+        "audit_event": "MOCK",
+        "downstream_request_reference": "MOCK",
+        "raw_evidence_reference": "MOCK",
+        "mocked_fields": [
+          "request_id",
+          "agent_identity",
+          "tool",
+          "target",
+          "authorization_decision",
+          "policy_identifier",
+          "timestamp",
+          "audit_event",
+          "downstream_request_reference",
+          "raw_evidence_reference"
+        ],
+        "note": "No F5 component was in the request path. This is a placeholder, not an F5 observation."
+      }
+    },
+    {
+      "request_label": "agent-a update_customer(customer-123) under validation-v2",
+      "role": "attack",
+      "correlation": {
+        "test_id": "TC05",
+        "request_label": "agent-a update_customer(customer-123) under validation-v2",
+        "proposal_id": "TC05-084152-v2",
+        "agent_id": "agent-a",
+        "tool": "update_customer",
+        "target": "customer-123",
+        "sent_at": "2026-10-06T08:41:53.6670679Z"
+      },
+      "observation": {
+        "source": "MOCK",
+        "provider": "mock (no F5 in path)",
+        "request_id": "MOCK",
+        "agent_identity": "MOCK",
+        "tool": "MOCK",
+        "target": "MOCK",
+        "authorization_decision": "NOT_OBSERVED",
+        "policy_identifier": "MOCK",
+        "timestamp": "MOCK",
+        "audit_event": "MOCK",
+        "downstream_request_reference": "MOCK",
+        "raw_evidence_reference": "MOCK",
+        "mocked_fields": [
+          "request_id",
+          "agent_identity",
+          "tool",
+          "target",
+          "authorization_decision",
+          "policy_identifier",
+          "timestamp",
+          "audit_event",
+          "downstream_request_reference",
+          "raw_evidence_reference"
+        ],
+        "note": "No F5 component was in the request path. This is a placeholder, not an F5 observation."
+      }
+    }
+  ],
+  "f5_provider": "mock (no F5 in path)",
+  "f5_result": "NOT_TESTED",
+  "sentrygate_ingress_decisions": [
+    {
+      "decision_id": "dec_CBQ7HDIK56X2PV7MMADJNFULMT",
+      "stage": "INGRESS",
+      "agent_id": "agent-a",
+      "command": "UPDATE_CUSTOMER",
+      "target_id": "customer-123",
+      "environment": "test",
+      "verdict": "ALLOW",
+      "reasons": [
+        "ENVIRONMENT_ALLOWED"
+      ],
+      "policy_version": "validation-v1",
+      "policy_digest": "ee8ec5a2c7ea96d02ae265ac033133bcb20caf72666095b6d35883bf78340498",
+      "request_hash": "b614e29e50f919d1d0db3a64840178e5e25c857db0d9bb05ed4d56eaf08bacf7",
+      "workflow_id": "saga-TC05-084152-v1",
+      "recorded_at": "2026-10-06T08:41:52.7268204Z"
+    },
+    {
+      "decision_id": "dec_HKXMEZYPWRUODDIT34IDQ7IQOF",
+      "stage": "INGRESS",
+      "agent_id": "agent-a",
+      "command": "UPDATE_CUSTOMER",
+      "target_id": "customer-123",
+      "environment": "test",
+      "verdict": "DENY",
+      "reasons": [
+        "COMMAND_NOT_PERMITTED_FOR_AGENT"
+      ],
+      "policy_version": "validation-v2",
+      "policy_digest": "5d8ab0d901594791bbb9713f7d724d96426c5563bdbfdbd875134834c21c0734",
+      "request_hash": "a40853f50259c1bb1ca7c2f7574ca4d326a931bc6dd68d37eca60ad6eb1466da",
+      "workflow_id": "",
+      "recorded_at": "2026-10-06T08:41:53.6670679Z"
+    }
+  ],
+  "test_id": "TC05"
+}

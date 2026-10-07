@@ -1,0 +1,114 @@
+{
+  "note": "API keys are never recorded. path=gateway is POST /v1/intercept; path=execution-boundary is direct Temporal access.",
+  "requests": [
+    {
+      "label": "agent-a update_customer(customer-123)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "proposal": {
+        "id": "TC08-084200-update",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-123",
+        "payload": "{\"tier\":\"silver\"}"
+      },
+      "workflow_id": "saga-TC08-084200-update",
+      "run_id": "01a11060-7a48-741a-8fee-9cd62850588d",
+      "sent_at": "2026-10-06T08:42:00.6445018Z",
+      "http_status": 200,
+      "response": {
+        "status": "accepted",
+        "verdict": "ALLOW",
+        "reasons": [
+          "ENVIRONMENT_ALLOWED"
+        ],
+        "decision_id": "dec_XF6KAZA2M2F4FSUMKWACPMRMO4",
+        "proposal_id": "TC08-084200-update",
+        "workflow_id": "saga-TC08-084200-update",
+        "run_id": "01a11060-7a48-741a-8fee-9cd62850588d"
+      },
+      "workflow_outcome": {
+        "workflow_id": "saga-TC08-084200-update",
+        "run_id": "01a11060-7a48-741a-8fee-9cd62850588d",
+        "status": "COMPLETED"
+      },
+      "sentrygate_outcome": "EXECUTED",
+      "sentrygate_detail": "workflow completed"
+    },
+    {
+      "label": "reset the completed run to after ClaimExecution",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal ResetWorkflowExecution (workflow task finished at event 17)",
+      "agent_id": "",
+      "workflow_id": "saga-TC08-084200-update",
+      "run_id": "dc6b805c-836b-4a47-abb9-ae499ee4a956",
+      "sent_at": "2026-10-06T08:42:00.7227385Z",
+      "workflow_outcome": {
+        "workflow_id": "saga-TC08-084200-update",
+        "run_id": "dc6b805c-836b-4a47-abb9-ae499ee4a956",
+        "status": "FAILED",
+        "error_type": "EXECUTION_CLAIM_REJECTED",
+        "message": "execution fence not acquired; proposal not executed (type: EXECUTION_CLAIM_REJECTED, retryable: false): activity error (type: DispatchConfig, scheduledEventID: 39, startedEventID: 40, identity: 15396@LAPTOP-AJIS5RJH@): adapter not called: execution fence is not held by this run (type: EXECUTION_FENCE_REJECTED, retryable: false): execution does not hold the claim in a state that permits this transition"
+      },
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "EXECUTION_CLAIM_REJECTED"
+    },
+    {
+      "label": "agent-a update_customer(customer-gated)",
+      "role": "legitimate",
+      "path": "gateway",
+      "action": "POST /v1/intercept",
+      "agent_id": "agent-a",
+      "proposal": {
+        "id": "TC08-084200-gated",
+        "type": "UPDATE_CUSTOMER",
+        "target_id": "customer-gated",
+        "payload": "{\"tier\":\"gold\"}"
+      },
+      "workflow_id": "saga-TC08-084200-gated",
+      "run_id": "01a11060-7acc-70d2-86a9-a6d4e57d7b16",
+      "sent_at": "2026-10-06T08:42:00.7772865Z",
+      "http_status": 200,
+      "response": {
+        "status": "accepted",
+        "verdict": "ALLOW",
+        "reasons": [
+          "ENVIRONMENT_ALLOWED"
+        ],
+        "decision_id": "dec_D2E2VIDWW2WLYSUS6SMYUEKTTG",
+        "proposal_id": "TC08-084200-gated",
+        "workflow_id": "saga-TC08-084200-gated",
+        "run_id": "01a11060-7acc-70d2-86a9-a6d4e57d7b16"
+      },
+      "workflow_outcome": {
+        "workflow_id": "saga-TC08-084200-gated",
+        "run_id": "01a11060-7acc-70d2-86a9-a6d4e57d7b16",
+        "status": "TERMINATED"
+      },
+      "sentrygate_outcome": "TERMINATED_BEFORE_EXECUTION",
+      "sentrygate_detail": "run terminated"
+    },
+    {
+      "label": "reset the in-flight run while its dispatch is held at the target",
+      "role": "attack",
+      "path": "execution-boundary",
+      "action": "Temporal ResetWorkflowExecution (workflow task finished at event 17)",
+      "agent_id": "",
+      "workflow_id": "saga-TC08-084200-gated",
+      "run_id": "4ece2193-3fd6-4d96-928d-756ee0b908af",
+      "sent_at": "2026-10-06T08:42:00.9358881Z",
+      "workflow_outcome": {
+        "workflow_id": "saga-TC08-084200-gated",
+        "run_id": "4ece2193-3fd6-4d96-928d-756ee0b908af",
+        "status": "FAILED",
+        "error_type": "EXECUTION_CLAIM_REJECTED",
+        "message": "execution fence not acquired; proposal not executed (type: EXECUTION_CLAIM_REJECTED, retryable: false): activity error (type: DispatchConfig, scheduledEventID: 39, startedEventID: 40, identity: 15396@LAPTOP-AJIS5RJH@): adapter not called: execution fence is not held by this run (type: EXECUTION_FENCE_REJECTED, retryable: false): execution does not hold the claim in a state that permits this transition"
+      },
+      "sentrygate_outcome": "REFUSED_AT_EXECUTION_BOUNDARY",
+      "sentrygate_detail": "EXECUTION_CLAIM_REJECTED"
+    }
+  ],
+  "test_id": "TC08"
+}
